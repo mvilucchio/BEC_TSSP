@@ -1,2 +1,3 @@
-# numerical_methods_project
+# Numerical Methods Project
+
 Project for Numerical Methods Course @ ENS 2020
