@@ -1,0 +1,157 @@
+\documentclass[a4paper,10pt]{article}
+%\documentclass[a4paper,10pt]{scrartcl}
+
+\usepackage[utf8]{inputenc}
+
+\title{}
+\author{Carlos Lopetegui, Ayoub Ouazzani, Matteo Vilucchio}
+\date{\today}
+
+\pdfinfo{%
+  /Title    ()
+  /Author   ()
+  /Creator  ()
+  /Producer ()
+  /Subject  ()
+  /Keywords ()
+}
+
+\begin{document}
+\maketitle
+\section{Deduction of the Gross-Pitaevskii equation}
+Gross-Pitaevskii equation describes the zero temperature properties of the non-uniform Bose gas when the scattering length $a$ is much less than the mean interparticle distance. In what follows we follow the derivation presented in \cite{petchik} \\
+The effective interaction between two particles at low energies is a constant in the momentum representation, given by :
+\begin{equation}
+ U_0=\frac{4 \pi \hbar^2a}{m}
+\end{equation}
+When translated into the coordinate space it represents a contact interaction:
+\begin{equation}
+ U(\vec{r},\vec{r}')=U_0 \delta(\vec{r}-\vec{r}')
+\end{equation}
+where $\vec{r}$ and $\vec{r}'$ represent the position of the two particles. Adopting the Hartree or mean field approach we can assume a symmetrized product of single particle wave functions as the wave function of the many body system. Thus, in the fully condensate state, when all bosons are in the saame single particle state $\phi(\vec{r})$ the $N$-particle wave function is:
+\begin{equation} \label{basic}
+ \Phi(\vec{r}_1,\vec{r}_2,...,\vec{r}_N)=\prod_{i=1}^{N}\phi(\vec{r_i})
+\end{equation}
+Where, as usual the single particle state is normalized. 
+To introduce in the description the effects of the correlations produced by the interaction when two atoms are close to each other  we should take into account the effective interaction $U_0\delta{(\vec{r}-\vec{r}')}$, which include the influence of short wavelength degrees of freedom, that have been set aside in the derivation of \ref{basic}. Then, 
+\begin{equation}
+ H=\sum_{i=1}^N \left(\frac{p_i^2}{2m}+V(\vec{r}_i)\right)+U_0\sum_{i<j}\delta(\vec{r}_i-\vec{r_j})
+\end{equation}
+Where $V(\vec{r})$ is the eternal potential. If now we insert \ref{basic} in this Hamiltonian, to consider first order perturbation, we get:
+\begin{equation}
+ \hat{H}\prod_{i=1}^{N}\phi(\vec{r_i})=E \prod_{i=1}^{N}\phi(\vec{r_i})
+\end{equation}
+where $E$ is the expectation value of $\hat{H}$ in the state \ref{basic}. we compute it now:
+\begin{equation}\label{En_Statev}
+ E=\langle\Phi(\vec{r}_1,\vec{r}_2,...,\vec{r}_N)|\hat{H}|\Phi(\vec{r}_1,\vec{r}_2,...,\vec{r}_N)\rangle
+\end{equation}
+In order to do it step by step, let's consider now:
+\begin{equation}\label{H_action}
+ \hat{H}\Phi(\vec{r}_1,\vec{r}_2,...,\vec{r}_N)=\sum_{i=1}^{N}\left(-\frac{\hbar^2}{2m}\nabla^2\phi(\vec{r}_i)+V(\vec{r}_i)\phi(\vec{r}_i)\right)\prod_{j\neq i}\phi(\vec{r}_j)+U_0\sum_{i<j}\delta(\vec{r}_i-\vec{r}_j)\prod_{k}\phi(\vec{r}_k)
+\end{equation}
+Now we determine the value of E using \ref{En_Statev}:
+\begin{equation}\label{Energy}
+ E=\int d\vec{r}_1 d\vec{r}_2 ... d\vec{r}_N \Phi^{*}\hat{H}\Phi
+\end{equation}
+Let's treat it term by term of \ref{H_action} starting from the easiest one, which is the one containing the interactions:
+\begin{equation}
+\int  d\vec{r}_1 d\vec{r}_2 ... d\vec{r}_N \left( U_0\sum_{i<j}\delta(\vec{r}_i-\vec{r}_j)\prod_{k}\phi(r_k)^{*}\phi(\vec{r}_k)\right)
+\end{equation}
+Clearly, the integral of each term of the sum is one, times $\int d\vec{r_i} |\phi(\vec{r_i})|^4$, due to normalization and to the integration properties of the $\delta$ function. Then, we just have to determine the number of terms, which is indeed $N(N-1)/2$, which is the number of pairs of two elements in the ensemble of N. So, the previous integral reduce to:
+\begin{equation}\label{term3}
+ \frac{N(N-1)}{2}U_0\int d\vec{r_i} |\phi(\vec{r_i})|^4
+\end{equation}
+The next term to consider would be
+\begin{equation}\label{term2}
+ \int d\vec{r_i} d\vec{r_2} ... d\vec{r_N}\left(\sum_{i=1}^{N}V(\vec{r}_i)\prod_{j=1}^{N}\phi(\vec{r}_j)\right)=N\int d\vec{r} V(\vec{r})|\phi(\vec{r})|^2
+\end{equation}
+For the remaining term we just have to do the same as have been doing until here, i.e. consider the normalization of all states, so that when we integrate over $\vec{r}_{j\neq i}$ it results in one, and consider that all the terms in the sum are equal as the one particle wave functions are all the same. So, we get:
+\begin{equation}
+ \int \left(\sum_{i=1}^{N}\left(-\frac{\hbar^2}{2m}\nabla^2\phi(\vec{r}_i)\prod_{j\neq i}\phi(\vec{r}_j)\right)\right)=N\int d\vec{r} \left(-\frac{\hbar^2}{2m}\nabla^2\phi(\vec{r})\right)
+\end{equation}
+Now, the latter can just be integrated by parts and results in:
+\begin{equation}\label{term1}
+ N\int d\vec{r} \left(\frac{\hbar^2}{2m}|\nabla\phi(\vec{r})|^2\right)
+\end{equation}
+Now, substituting \ref{term1},\ref{term2} and \ref{term3} into \ref{Energy}, we get:
+\begin{equation}\label{Energy_int}
+ E=N\int d\vec{r}\left(\frac{\hbar^2}{2m}|\nabla\phi(\vec{r})|^2+V(\vec{r})|\phi(\vec{r})|^2+\frac{(N-1)}{2}U_0|\phi(\vec{r})|^4\right)
+\end{equation}
+Let's now just as a starting point consider a uniform Bose gas. In this case the single particle wave function of a particle in the ground state, in a volume V, is $1/V^{1/2}$, and then, the interaction energy of two particles is given by $U_0/V$. Then, for a state with N bosons all in the same state, the interaction energy is:
+\begin{equation}
+ E=\frac{N(N-1)}{2V}U_0 \approx\frac{1}{2}V n^2 U_0
+\end{equation}
+where $n=N/V$, and we consider the scenario where $N\gg1$.\\
+In what follows, it is convenient to introduce the wave function of the condensate, given by 
+\begin{equation}
+ \psi(\vec{r})=N^{1/2}\phi(\vec{r})
+\end{equation}
+so that the density of particles is given by:
+\begin{equation}
+ n(\vec{r})=|\psi(\vec{r})|^2
+\end{equation}
+So that the equation \ref{Energy_int} reduces to:
+\begin{equation}\label{Energy_cond_wave_f}
+ E=\int d\vec{r}\left(\frac{\hbar^2}{2m}|\nabla\psi(\vec{r})|^2+V(\vec{r})|\psi(\vec{r})|^2+\frac{1}{2}U_0|\psi(\vec{r})|^4\right)
+\end{equation}
+As we are looking forr the zero temperature state, all what we have to do now is to minimize the Energy with respect independent variations of $\psi(\vec{r})$ and $\psi^{*}(\vec{r})$, under the constraint that the total number of particles remain constant. 
+\begin{equation}
+ N=\int d\vec{r}|\psi(\vec{r})|^2
+\end{equation}
+So, what we have to determine is the condition which ensures:
+\begin{equation}
+ \delta E- \mu \delta N=0
+\end{equation}
+where $\mu$ is just a Lagrange multiplier which in fact matches the chemical potential of a particle in the condensate (energy per single particle). The previous equation in fact results into a variation where we get two terms, one multiplying the variation of $\delta \psi$ and other the variation of $\delta \psi^*$, but once you consider one of them the other provides no new information as equals the comple conjugate of the first equation. Then, now we show just the variation with respect to $\delta \psi^*$:
+\begin{equation}
+ \delta E-\mu \delta N \sim \int d\vec{r} \left(\frac{\hbar^2}{2m}\nabla( \delta \psi^*)\nabla \psi +V(\vec{r})\delta \psi^* \psi +U_0 |\psi(\vec{r})|^2 \psi(\vec{r})-\mu \psi(\vec{r}) \delta \psi^*\right)=0
+\end{equation}
+Integrating by parts the first term, considering a localized system, so that the boundary terms can be eliminated, we get:
+\begin{equation}
+ \delta E-\mu \delta N \sim \int d\vec{r}\delta \psi^* \left(\frac{-\hbar^2}{2m}\nabla^2 \psi(\vec{r}) +V(\vec{r}) \psi +U_0 |\psi(\vec{r})|^2 \psi(\vec{r})-\mu \psi(\vec{r})\right)=0
+\end{equation}
+So, that considering that it has to be true for any arbitrary variation $\delta \psi^*$, we get the condition fro minimizing the Energy:
+\begin{equation}\label{GP_Eq1}
+ \frac{-\hbar^2}{2m}\nabla^2 \psi(\vec{r}) +V(\vec{r}) \psi +U_0 |\psi(\vec{r})|^2 \psi(\vec{r})=\mu \psi(\vec{r})
+\end{equation}
+Which can be rewritten as:
+\begin{equation}\label{GP_Eq}
+ \left(\frac{-\hbar^2}{2m}\nabla^2 +V(\vec{r}) +U_0 |\psi(\vec{r})|^2 \right)\psi(\vec{r})=\mu \psi(\vec{r})
+\end{equation}
+Last equation is the time independent Gross-Pitaevski equation. This clearly has the form of a Schrodinger equation in the presence of a potential which is the result of combining the potential $V(\vec{r})$ with the nonlinear term $U_0|\psi(\vec{r})|^2$, which represents the mean field effect of the whole condensate over each individual member of the system of bosons. On the other side, the eigenvalue of the equation is the chemical potential, which in the case of non interacting particles, all in the same state is the energy per particle, yet the same is no true for interacting particles. For a uniform Bose gas, this equation reads in fact:
+\begin{equation}\label{GP_uniform_Bose_gas}
+\mu=U_0|\psi(\vec{r})|^2=U_0 n 
+\end{equation}
+\section{Time dependent Gross-Pitaevskii Equation}
+The time dependent Gross-Pitaevskii equation, which describe the dynamics of the condensate in a first approximation. It is natural to generalize the previously obtained statinary ``Schrodinger'' equation and directly define the $GP$ time dependent equation as a Schrodinger equation in the presence of a potential perturbed for the nonlinear term $U_0|\psi(\vec{r},t)|^2$, which in turn is: 
+\begin{equation}\label{GP_time_Dep}
+ i\hbar \frac{\partial \psi(\vec{r},t)}{\partial t}=\left(\frac{-\hbar^2}{2m}\nabla^2 +V(\vec{r},t) +U_0 |\psi(\vec{r},t)|^2 \right)\psi(\vec{r}),t
+\end{equation}
+But just as the time independent one, the latter can be derived from variational principles considering:
+\begin{equation}
+ \delta \int_{t_1}^{t2}Ldt=0
+ \end{equation}
+ where $L$, is given by:
+ \begin{equation}
+  L=\int d\vec{r}\frac{i\hbar}{2}\left(\psi^*\frac{\partial \psi}{\partial t}-\psi \frac{\partial \psi^*}{\partial t}\right)-E
+ \end{equation}
+ which is equivalent to:
+ \begin{equation}
+  L=\int d\vec{r}\frac{i\hbar}{2}\left(\psi^*\frac{\partial \psi}{\partial t}-\psi \frac{\partial \psi^*}{\partial t}-\epsilon\right)
+ \end{equation}
+where $\epsilon=\frac{\hbar^2}{2m}|\nabla\psi|^2+V(\vec{r})|\psi|^2+\frac{1}{2}U_0|\psi|^4$. Solving the variational problem one directly determines the time dependent Gross-Pitaevskii equation \ref{GP_time_Dep}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
