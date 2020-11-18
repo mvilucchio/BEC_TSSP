@@ -1,0 +1,53 @@
+\documentclass[12pt, oneside]{article}   	
+\usepackage{geometry}                		
+\geometry{letterpaper}                   		
+\usepackage{graphicx}			
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{dsfont}
+
+\usepackage{physics}
+\usepackage{siunitx}
+\usepackage{slashed}
+
+\usepackage{mathtools}
+
+\renewcommand\thesection{Meeting \arabic{section}. Date:}
+
+\title{Summary of Meetings}
+\author{M. Vilucchio, A. Ouzzani, C. Lopetegui}
+%\date{}
+
+\begin{document}
+\maketitle
+\section{2020-11-18}
+
+The method used is the following, where $\varepsilon$ is the time step:
+\[
+	e^{\frac{\varepsilon}{2} (\operatorname{A})} e^{\varepsilon \operatorname{B}}e^{\frac{\varepsilon}{2} (\operatorname{A})} = e^{\varepsilon (\operatorname{A} + \operatorname{B})} + \order{\varepsilon^3}
+\]
+in the actual coding one useful thing to do is making the successive application of the exponential of $\operatorname{A}$ as one single operation. Like
+\[
+	\underbracket{e^{\frac{\varepsilon}{2} (\operatorname{A})}} \underbracket{e^{\varepsilon \operatorname{B}} }\underbracket{e^{\frac{\varepsilon}{2} (\operatorname{A})} e^{\frac{\varepsilon}{2} (\operatorname{A})} }_{e^{\varepsilon \operatorname{A}}} \underbracket{e^{\varepsilon \operatorname{B}} } \underbracket{e^{\frac{\varepsilon}{2} (\operatorname{A})} e^{\frac{\varepsilon}{2} (\operatorname{A})} }_{e^{\varepsilon \operatorname{A}}} \underbracket{ e^{\varepsilon \operatorname{B}} } \underbracket{e^{\frac{\varepsilon}{2} (\operatorname{A})} }
+\]
+
+While using the fft in two dimensions one should always remember to split space in every direction in $2^n$ parts to utilise the complexity advantage of the fft implementation.
+
+The definition of the width is, in every direction:
+\[
+	\sigma_x = \sqrt{ \big\langle \qty(x - \langle x\rangle)^2\big\rangle}\quad \text{ with } \quad\langle f \rangle = \int_{\mathbb{R}^2} f \abs{\psi} \dd[2]x
+\]
+
+The implementation, for the dimensions of the wave-function and the space matrix should be vectorial.
+
+Then to check the code try the example 2.I .
+
+\paragraph{Questions}
+\begin{itemize}
+	\item What is the error in the scheme for both the temporal and the spatial discretisation?
+\end{itemize}
+
+\end{document}  
