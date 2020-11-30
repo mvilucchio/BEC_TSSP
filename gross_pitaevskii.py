@@ -29,7 +29,7 @@ def TSSP_1d(m, N, a, b, psi0, potential, dt, k, eps):
 
     psi = np.empty((N, grid_points), dtype=complex)
 
-    x = np.linspace(0, 1, grid_points, endpoint=False)
+    x = np.linspace(a, b, grid_points, endpoint=False)
     t = np.linspace(0, N*dt, N, endpoint=False)
     mu = 2*np.pi * np.arange(grid_points, dtype=float)
 
@@ -52,44 +52,61 @@ def timeindep_tssp_1d_step(psi, V):
 
 
 
-def TSSP_2d(M, N, a, b, psi0, dt, k1, eps):
+def TSSP_2d(m, time_steps, a, b, psi0, potential, dt, k1, eps, i_coeff=False):
 
-    psi = np.empty((N, M, M), dtype=complex)
+    grid_points = 2**m
+    psi = np.empty((time_steps + 1, grid_points, grid_points), dtype=complex)
 
-    x = np.linspace(a, b, M, endpoint=False)
-    y = np.linspace(a, b, M, endpoint=False)
+    x = np.linspace(a, b, grid_points)
+    y = np.linspace(a, b, grid_points)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
-    t = np.linspace(0, N*dt, N, endpoint=False)
+    t = np.linspace(0, time_steps*dt, time_steps + 1)
+
+    V = potential(X, Y)
+
+    f = freq_maker(grid_points)
+    Fx, Fy = np.meshgrid(f, f, sparse=False, indexing="ij")
 
     psi[0,:] = psi0(X, Y)
 
-    for i in range(1, N):
-        ps = psi[i-1,:]
-        psi1 = ps * np.exp(-1j*((x**2+y**2)/2+k1*np.abs(ps)**2)*dt/(2*eps))
-        psihat1 = fft.fft2(psi1)
-        freq = freq_maker(M)
-        freqx, freqy = np.meshgrid(freq, freq, sparse=False, indexing="ij")
-        psihat2 = psihat1 * np.exp(-1j* eps*dt*4*np.pi**2*(freqx**2+freqy**2)/(b-a)**2)
-        psi2 = fft.ifft2(psihat2)
-        psi[i] = psi2 * np.exp(-1j*((x**2+y**2)/2+k1*np.abs(psi2)**2)*dt/(2*eps))
+    if i_coeff:
+        for i in range(time_steps + 1):
+            psi[i+1,:] = timeindep_tssp_2d_step(psi[i,:], k1, eps, V, Fx, Fy)
+    else:
+        for i in range(time_steps + 1):
+            psi[i+1,:] = timedep_tssp_2d_step(psi[i,:], k1, eps, V, Fx, Fy)
 
     return t, X, Y, psi
 
 
 
-def timeindep_tssp_2d_step():
+def timeindep_tssp_2d_step(psi, k1, eps, V, Fx, Fy):
 
-    return Null
+    psi1 = ps * np.exp(-1j*(V + k1*np.abs(psi)**2)*dt/(2*eps))
+    psihat1 = fft.fft2(psi1)
+    psihat2 = psihat1 * np.exp(-1j* eps*dt * 4*np.pi**2*(Fx**2 + Fy**2)/(b-a)**2)
+    psi2 = fft.ifft2(psihat2)
+    return psi2 * np.exp(-1j*(V + k1*np.abs(psi2)**2)*dt/(2*eps))
 
 
 
+def timedep_tssp_2d_step(psi, k1, eps, V, Fx, Fy):
+    #to be changed
+    psi1 = ps * np.exp(-1j*(V + k1*np.abs(psi)**2)*dt/(2*eps))
+    psihat1 = fft.fft2(psi1)
+    psihat2 = psihat1 * np.exp(-1j* eps*dt * 4*np.pi**2*(Fx**2 + Fy**2)/(b-a)**2)
+    psi2 = fft.ifft2(psihat2)
+    return psi2 * np.exp(-1j*(V + k1*np.abs(psi2)**2)*dt/(2*eps))
+
+
+'''
 def timedep_gp_1d(m, time_steps, a, b, psi0, beta, dt, potential):
 
     grid_points = 2**m
-    psi = np.empty((time_steps, grid_points), dtype=complex)
+    psi = np.empty((time_steps + 1, grid_points), dtype=complex)
 
-    x = np.linspace(0, 1, grid_points, endpoint=False)
-    t = np.linspace(0, time_steps*dt, time_steps, endpoint=False)
+    x = np.linspace(a, b, grid_points)
+    t = np.linspace(0, time_steps*dt, time_steps + 1)
     mu = 2*np.pi * np.arange(grid_points, dtype=float)
 
     V = potential(x)
@@ -98,7 +115,7 @@ def timedep_gp_1d(m, time_steps, a, b, psi0, beta, dt, potential):
 
     psi[0,:] = psi0(x)
 
-    for i in range(N-1):
+    for i in range(time_steps + 1):
         psi[i+1,:] = timedep_tssp_1d_step(psi[i,:], V, expV, k, \
                                             beta, mu_l, zero_pot)
 
@@ -119,7 +136,7 @@ def timedep_tssp_1d_step(psi, V, expV, k, beta, mu_l, zero_pot):
     p3[zero_pot] = p2 * 1 / np.sqrt(1 + beta*k*abs_p2)
 
     return p3 / np.abs(p3)
-
+'''
 
 
 def mean_value(f, psi, a, b, M):
@@ -158,8 +175,8 @@ def mean_value(f, psi, a, b, M):
     #this is the area element for the case of a square grid. a,b represent the limits of the square in 2D
     dA = delta**2
 
-    x = np.linspace(a, b, M, endpoint=False)
-    y = np.linspace(a, b, M, endpoint=False)
+    x = np.linspace(a, b, M)
+    y = np.linspace(a, b, M)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
 
     if psi.shape == x.shape:
