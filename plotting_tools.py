@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+from mpl_toolkits import mplot3d
 
 fig_size = (10, 6)
-cm_pcolor = cm.plasma
-cm_surface = cm.coolwarm
+cm_surface = cm.get_cmap('coolwarm')
+cm_pcolor = cm.get_cmap('Spectral')
 
 def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False):
     """
