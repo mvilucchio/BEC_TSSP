@@ -2,6 +2,8 @@ import numpy as np
 from numpy import fft
 import matplotlib.pyplot as plt
 
+EPS = 1e-12
+
 def freq_maker(N):
     """
     Wrapper for the creation of frequencies used in the following spectral method.
@@ -20,7 +22,8 @@ def freq_maker(N):
     return 2 * np.pi * fft.fftfreq(N, d = 2*np.pi/N)
 
 
-def TSSP_1d(M, N, a, b, psi0, dt, k, eps, k, save_each=30):
+
+def TSSP_1d(M, N, a, b, psi0, dt, k, eps, save_each=30):
 
     psi = np.empty((N, M), dtype=complex) # lines <-> time, columns <-> space
 
@@ -66,7 +69,7 @@ def TSSP_2d(M, N, a, b, psi0, dt, k1, eps, save_each=30):
 
 
 
-def timedip_gp(M, N, a, b, psi0, dt, save_each=30):
+def timedip_gp(M, N, a, b, psi0, dt, V, save_each=30):
 
     psi = np.zeros((N, M, M), dtype=complex)
 
@@ -75,7 +78,9 @@ def timedip_gp(M, N, a, b, psi0, dt, save_each=30):
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
     t = np.linspace(0, N*dt, N, endpoint=False)
 
-    psi[0,:] = psi0(x, y)
+    psi[0,:] = psi0(X, Y)
+
+    mask_potential = np.abs(V(X,Y)) < EPS
 
     for i in range(1, N):
         p = psi[i-1,:]
