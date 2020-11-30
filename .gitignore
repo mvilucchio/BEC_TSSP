@@ -1,3 +1,6 @@
+# Testing file #
+test*.py
+
 # OS generated files #
 ######################
 *.DS_Store
