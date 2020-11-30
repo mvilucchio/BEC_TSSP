@@ -20,41 +20,37 @@ def freq_maker(N):
     return 2 * np.pi * fft.fftfreq(N, d = 2*np.pi/N)
 
 
+def TSSP_1d(M, N, a, b, psi0, dt, k, eps, k, save_each=30):
 
-def TSSP_1d(M, N, a, b, psi0, eps,k,psi0,M,dt,N):
-    # k : kappa ; f0 : function at t=0
-
-    psi = np.empty((N,M),dtype=complex) # lines <-> time, columns <-> space
+    psi = np.empty((N, M), dtype=complex) # lines <-> time, columns <-> space
 
     x = np.linspace(0, 1, M, endpoint=False)
     t = np.linspace(0, N*dt, N, endpoint=False)
     mu = np.array([2*np.pi*l for l in range(M)])
 
-    psi[0,:] = f0(x)
+    psi[0,:] = psi0(x)
 
     for n in range(N-1):
         psin = psi[n,:]
 
         psi1 = np.exp(-1j*(x**2/2+k*np.abs(psin)**2)*dt/(2*eps))*psin
-
         psi2 = np.fft.ifft( np.exp(-1j*eps*dt*mu**2/2) * np.fft.fft(psi1) )
-
         psi[n+1,:] = np.exp(-1j*(x**2/2+k*np.abs(psi2)**2)*dt/(2*eps))*psi2
 
     return t, x, psi
 
 
 
-def TSSP2D(M, N, a, b, psi0, dt, k1, eps, save_each=20):
+def TSSP_2d(M, N, a, b, psi0, dt, k1, eps, save_each=30):
 
-    psi = np.zeros((N, M, M), dtype=complex)
+    psi = np.empty((N, M, M), dtype=complex)
 
     x = np.linspace(a, b, M, endpoint=False)
     y = np.linspace(a, b, M, endpoint=False)
-    x, y = np.meshgrid(x, y, sparse=False, indexing="ij")
+    X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
     t = np.linspace(0, N*dt, N, endpoint=False)
 
-    psi[0,:] = psi0(x, y)
+    psi[0,:] = psi0(X, Y)
 
     for i in range(1, N):
         ps = psi[i-1,:]
@@ -66,7 +62,26 @@ def TSSP2D(M, N, a, b, psi0, dt, k1, eps, save_each=20):
         psi2 = fft.ifft2(psihat2)
         psi[i] = psi2 * np.exp(-1j*((x**2+y**2)/2+k1*np.abs(psi2)**2)*dt/(2*eps))
 
-    return t, x, y, psi
+    return t, X, Y, psi
+
+
+
+def timedip_gp(M, N, a, b, psi0, dt, save_each=30):
+
+    psi = np.zeros((N, M, M), dtype=complex)
+
+    x = np.linspace(a, b, M, endpoint=False)
+    y = np.linspace(a, b, M, endpoint=False)
+    X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
+    t = np.linspace(0, N*dt, N, endpoint=False)
+
+    psi[0,:] = psi0(x, y)
+
+    for i in range(1, N):
+        p = psi[i-1,:]
+
+
+    return t, X, Y, psi
 
 
 
