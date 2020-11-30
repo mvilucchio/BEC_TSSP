@@ -23,28 +23,36 @@ def freq_maker(N):
 
 
 
-def TSSP_1d(M, N, a, b, psi0, dt, k, eps, save_each=30):
+def TSSP_1d(m, N, a, b, psi0, potential, dt, k, eps):
 
-    psi = np.empty((N, M), dtype=complex) # lines <-> time, columns <-> space
+    grid_points = 2**m
 
-    x = np.linspace(0, 1, M, endpoint=False)
+    psi = np.empty((N, grid_points), dtype=complex)
+
+    x = np.linspace(0, 1, grid_points, endpoint=False)
     t = np.linspace(0, N*dt, N, endpoint=False)
-    mu = np.array([2*np.pi*l for l in range(M)])
+    mu = 2*np.pi * np.arange(grid_points, dtype=float)
+
+    V = potential(x)
 
     psi[0,:] = psi0(x)
 
     for n in range(N-1):
-        psin = psi[n,:]
-
-        psi1 = np.exp(-1j*(x**2/2+k*np.abs(psin)**2)*dt/(2*eps))*psin
-        psi2 = np.fft.ifft( np.exp(-1j*eps*dt*mu**2/2) * np.fft.fft(psi1) )
-        psi[n+1,:] = np.exp(-1j*(x**2/2+k*np.abs(psi2)**2)*dt/(2*eps))*psi2
+        psi[n+1,:] = timeindep_tssp_1d_step(psi[n,:], V)
 
     return t, x, psi
 
 
 
-def TSSP_2d(M, N, a, b, psi0, dt, k1, eps, save_each=30):
+def timeindep_tssp_1d_step(psi, V):
+
+    p1 = psi * np.exp(-1j*(V + k * np.abs(psi)**2) * dt/(2*eps))
+    p2 = fft.ifft(np.exp(-1j*eps*dt*mu**2/2) * fft.fft(p1))
+    return p2 * np.exp(-1j*(V + k * np.abs(p2)**2)*dt/(2*eps))
+
+
+
+def TSSP_2d(M, N, a, b, psi0, dt, k1, eps):
 
     psi = np.empty((N, M, M), dtype=complex)
 
@@ -69,24 +77,48 @@ def TSSP_2d(M, N, a, b, psi0, dt, k1, eps, save_each=30):
 
 
 
-def timedip_gp(M, N, a, b, psi0, dt, V, save_each=30):
+def timeindep_tssp_2d_step():
 
-    psi = np.zeros((N, M, M), dtype=complex)
-
-    x = np.linspace(a, b, M, endpoint=False)
-    y = np.linspace(a, b, M, endpoint=False)
-    X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
-    t = np.linspace(0, N*dt, N, endpoint=False)
-
-    psi[0,:] = psi0(X, Y)
-
-    mask_potential = np.abs(V(X,Y)) < EPS
-
-    for i in range(1, N):
-        p = psi[i-1,:]
+    return Null
 
 
-    return t, X, Y, psi
+
+def timedep_gp_1d(m, time_steps, a, b, psi0, beta, dt, potential):
+
+    grid_points = 2**m
+    psi = np.empty((time_steps, grid_points), dtype=complex)
+
+    x = np.linspace(0, 1, grid_points, endpoint=False)
+    t = np.linspace(0, time_steps*dt, time_steps, endpoint=False)
+    mu = 2*np.pi * np.arange(grid_points, dtype=float)
+
+    V = potential(x)
+    expV = np.exp(-k*V)
+    zero_pot = V == 0
+
+    psi[0,:] = psi0(x)
+
+    for i in range(N-1):
+        psi[i+1,:] = timedep_tssp_1d_step(psi[i,:], V, expV, k, \
+                                            beta, mu_l, zero_pot)
+
+    return t, x, psi
+
+
+
+def timedep_tssp_1d_step(psi, V, expV, k, beta, mu_l, zero_pot):
+
+    abs_psi = np.abs(psi)**2
+    p1 = psi * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_psi))
+    p1[zero_pot] = psi * 1 / np.sqrt(1 + beta*k*abs_psi)
+
+    p2 = 1
+
+    abs_p2 = np.abs(p2)**2
+    p3 = p2 * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_p2))
+    p3[zero_pot] = p2 * 1 / np.sqrt(1 + beta*k*abs_p2)
+
+    return p3 / np.abs(p3)
 
 
 
