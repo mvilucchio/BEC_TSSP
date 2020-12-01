@@ -38,6 +38,7 @@ cm_pcolor = cm.get_cmap('Spectral')
 
     ax.plot(x, y)
 
+    ax.grid()
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -133,3 +134,19 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
     plt.show()
 
     return fig
+
+
+
+if __name__ == "__main__":
+    import numpy as np
+
+    x = np.linspace(-3, 3, 100)
+    y = np.arctan(x)
+    plane_plotter(x, y, title="Plane Plotter Test", x_label=r'$x$', y_label=r'$\arctan(x)$')
+
+    X, Y = np.meshgrid(x, x)
+    fun = lambda x, y : np.sin(np.sqrt(X**2 + Y**2))
+    Z = fun(X, Y)
+
+    pcolor_plotter(X, Y, Z, title="Pcolor Test")
+    surface_plotter(X, Y, Z, title="Surface Plotter Test", z_label=r'$\sin(x^2 + y^2)$')
