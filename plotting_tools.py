@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits import mplot3d
+import matplotlib.animation as animation
 
 fig_size = (10, 6)
 cm_surface = cm.get_cmap('coolwarm')
@@ -137,6 +138,32 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
 
 
 
+def surface_animate(x, y, z, delay=200, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$'):
+
+    fig = plt.figure(figsize=fig_size)
+    ax = fig.gca(projection='3d')
+
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_zlabel(z_label, rotation=90)
+    ax.set_title(title)
+
+    frames = []
+
+    for t in range(z.shape[0]):
+        s = ax.plot_surface(x, y, z[t,:], cmap=cm_surface, linewidth=0, antialiased=False)
+        frames.append([s])
+
+    anim = animation.ArtistAnimation(fig, frames, interval=delay, \
+                                     repeat_delay=2*delay, repeat=True, blit=False)
+
+    plt.show()
+
+    return anim
+
+
+
+"""
 if __name__ == "__main__":
     import numpy as np
 
@@ -150,3 +177,4 @@ if __name__ == "__main__":
 
     pcolor_plotter(X, Y, Z, title="Pcolor Test")
     surface_plotter(X, Y, Z, title="Surface Plotter Test", z_label=r'$\sin(x^2 + y^2)$')
+"""
