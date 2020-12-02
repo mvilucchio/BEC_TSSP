@@ -122,6 +122,22 @@ Last equation is the time independent Gross-Pitaevski equation. This clearly has
 \begin{equation}\label{GP_uniform_Bose_gas}
 \mu=U_0|\psi(\vec{r})|^2=U_0 n 
 \end{equation}
+
+\subsection{Dimensionless Gross-Pitaevskii Equation}
+To proceed with numerical simulation is more useful to work with a dimensionless GP equation. This result can be achieved by scaling quantities by unit dimensional quantities. In the particular case of an isotropic harmonic oscillator potential one has that the scaling quantities can be chosen as:
+\[
+	\tilde{t}=\omega_{x} t, \quad \tilde{\mathbf{x}}=\frac{\mathbf{x}}{x_{s}}, \quad \tilde{\psi}(\tilde{\mathbf{x}}, \tilde{t})=x_{s}^{3 / 2} \psi(\mathbf{x}, t)
+\]
+Now by substituting inside the Gross-Pitaevskii equation and rescaling the relation one obtains:
+\[
+	\mathrm{i} \varepsilon \frac{\partial \psi(\mathbf{x}, t)}{\partial t}=-\frac{\varepsilon^{2}}{2} \nabla^{2} \psi(\mathbf{x}, t)+V(\mathbf{x}) \psi(\mathbf{x}, t)+\delta \varepsilon^{5 / 2}|\psi(\mathbf{x}, t)|^{2} \psi(\mathbf{x}, t)
+\]
+where some constants has been introduced:
+\[
+	\varepsilon=\frac{\hbar}{\omega m x_{s}^{2}}=\left(\frac{a_{0}}{x_{s}}\right)^{2}, \quad \delta=\frac{U_{0} N}{a_{0}^{3} \hbar \omega_{x}}=\frac{4 \pi a N}{a_{0}}, \quad a_{0}=\sqrt{\frac{\hbar}{\omega_{x} m}}
+\]
+where the product $\kappa := \delta \epsilon^{5/2}$ is called coefficient of non linearity.
+
 \section{Time dependent Gross-Pitaevskii Equation}
 The time dependent Gross-Pitaevskii equation, which describe the dynamics of the condensate in a first approximation. It is natural to generalize the previously obtained statinary ``Schrodinger'' equation and directly define the $GP$ time dependent equation as a Schrodinger equation in the presence of a potential perturbed for the nonlinear term $U_0|\psi(\vec{r},t)|^2$, which in turn is: 
 \begin{equation}\label{GP_time_Dep}
