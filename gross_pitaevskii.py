@@ -4,7 +4,15 @@ import matplotlib.pyplot as plt
 
 EPS = 1e-12
 
-def TSSP_1d(m, N, a, b, psi0, potential, dt, k, eps):
+def get_freq(N):
+    arr = np.zeros((N,))
+    arr[0:int(N-np.floor(N/2))] = np.array(range(0,int(N-np.floor(N/2))))
+    arr[int(N-np.floor(N/2)):N] = np.array(range(0,int(np.floor(N/2)))) - np.floor(N/2)
+    return arr
+
+
+
+def ti_tssp_1d_pbc(m, N, a, b, psi0, potential, dt, k, eps):
 
     grid_points = 2**m
 
@@ -19,13 +27,13 @@ def TSSP_1d(m, N, a, b, psi0, potential, dt, k, eps):
     psi[0,:] = psi0(x)
 
     for n in range(N-1):
-        psi[n+1,:] = timeindep_tssp_1d_step(psi[n,:], V)
+        psi[n+1,:] = _ti_tssp_1d_pbc_step(psi[n,:], V)
 
     return t, x, psi
 
 
 
-def timeindep_tssp_1d_step(psi, V):
+def _ti_tssp_1d_pbc_step(psi, V):
 
     p1 = psi * np.exp(-1j*(V + k * np.abs(psi)**2) * dt/(2*eps))
     p2 = fft.ifft(np.exp(-1j*eps*dt*mu**2/2) * fft.fft(p1))
@@ -33,86 +41,89 @@ def timeindep_tssp_1d_step(psi, V):
 
 
 
-def TSSP_2d(m, time_steps, a, b, psi0, potential, dt, k1, eps):
+def ti_tssp_2d_pbc(M, N, q, a, b, psi0, potential, dt, beta, eps):
+    # 1/q is the fraction of the times we want to store. q must devide N
 
-    grid_points = 2**m
-    psi = np.empty((time_steps + 1, grid_points, grid_points), dtype=complex)
-
-    x = np.linspace(a, b, grid_points)
-    y = np.linspace(a, b, grid_points)
+    n = int(N/q)
+    x = np.linspace(a, b, M, endpoint=False)
+    y = np.linspace(a, b, M, endpoint=False)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
-    t = np.linspace(0, time_steps*dt, time_steps + 1)
+    t = np.linspace(0, N*dt, n, endpoint=False)
+    f = get_freq(M)
+    Fx, Fy = np.meshgrid(freq,freq,sparse=False,indexing="ij")
+    F2 = Fx**2 + Fy**2
+
+    psi = np.empty((n, M, M), dtype=complex)
+    psi[0,:,:] = psi0(X, Y)
 
     V = potential(X, Y)
 
-    f = 2*np.pi * fft.fftfreq(grid_points, d = 2*np.pi/grid_points)
-    Fx, Fy = np.meshgrid(f, f, sparse=False, indexing="ij")
+    for i in range(1,n):
+        psi[i,:] = _td_tssp_2d_pbc_multi_step(psi[i-1,:], beta, eps, dt, q, b-a, V, F2)
 
+    return t, X, Y, psi
+
+
+# can be made faster even more
+def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, q, len, V, F2):
+
+    ps = psi * np.exp(-1j*(V + beta*np.abs(psi)**2)*dt/(2*eps))
+    ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * eps*dt * (4*np.pi**2/len**2) * F2))
+
+    for j in range(q-1):
+        ps = ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/eps)
+        ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j* eps*dt * (4*np.pi**2/len**2) * F2))
+
+    return ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/(2*eps))
+
+
+
+def td_tssp_2d_pbc(M, time_steps, a, b, psi0, potential, dt, beta, eps):
+
+    #n = int(time_steps/every_n_t)
+    x = np.linspace(a, b, M, endpoint=False)
+    y = np.linspace(a, b, M, endpoint=False)
+    X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
+    t = dt * np.arange(time_steps)
+    f = get_freq(M)
+
+    Fx, Fy = np.meshgrid(f, f, sparse=False, indexing="ij")
+    F2 = Fx**2 + Fy**2
+
+    psi = np.empty((time_steps, M, M), dtype=complex)
     psi[0,:] = psi0(X, Y)
 
-    for i in range(time_steps + 1):
-        psi[i+1,:] = timeindep_tssp_2d_step(psi[i,:], k1, eps, V, Fx, Fy)
+    V = potential(X, Y) / eps
+    zero_pot = V == 0.0
+    expV = np.exp(- dt * V / eps)
+
+    p = psi[0,:]
+
+    for i in range(1, time_steps):
+        psi[i,:] = _td_tssp_pbc_2d_step(psi[i-1,:], dt, beta, eps, x[2]- x[1], x[2]- x[1], b-a, \
+                                        V, expV, zero_pot, F2)
 
     return t, X, Y, psi
 
 
 
-def timeindep_tssp_2d_step(psi, k1, eps, V, Fx, Fy):
-
-    psi1 = ps * np.exp(-1j*(V + k1*np.abs(psi)**2)*dt/(2*eps))
-    psihat1 = fft.fft2(psi1)
-    psihat2 = psihat1 * np.exp(-1j* eps*dt * 4*np.pi**2*(Fx**2 + Fy**2)/(b-a)**2)
-    psi2 = fft.ifft2(psihat2)
-    return psi2 * np.exp(-1j*(V + k1*np.abs(psi2)**2)*dt/(2*eps))
-
-
-
-def timedep_tssp_2d_step(psi, k1, eps, V, Fx, Fy):
-
-    psi1 = ps * np.exp(-1j*(V + k1*np.abs(psi)**2)*dt/(2*eps))
-    psihat1 = fft.fft2(psi1)
-    psihat2 = psihat1 * np.exp(-1j* eps*dt * 4*np.pi**2*(Fx**2 + Fy**2)/(b-a)**2)
-    psi2 = fft.ifft2(psihat2)
-    return psi2 * np.exp(-1j*(V + k1*np.abs(psi2)**2)*dt/(2*eps))
-
-
-
-def timedep_gp_dbc_1d(m, time_steps, a, b, psi0, beta, dt, potential):
-
-    grid_points = 2**m
-    psi = np.empty((time_steps + 1, grid_points), dtype=complex)
-
-    x = np.linspace(a, b, grid_points)
-    t = np.linspace(0, time_steps*dt, time_steps + 1)
-    mu = 2*np.pi * np.arange(grid_points, dtype=float)
-
-    V = potential(x)
-    expV = np.exp(-k*V)
-    zero_pot = V == 0
-
-    psi[0,:] = psi0(x)
-
-    for i in range(time_steps + 1):
-        psi[i+1,:] = timedep_tssp_1d_step(psi[i,:], V, expV, k, \
-                                            beta, mu_l, zero_pot)
-
-    return t, x, psi
-
-
-
-def timedep_tssp_dbc_1d_step(psi, V, expV, k, beta, mu_l, zero_pot):
+def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, len, V, expV, zero_pot, F2):
 
     abs_psi = np.abs(psi)**2
-    p1 = psi * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_psi))
-    p1[zero_pot] = psi * 1 / np.sqrt(1 + beta*k*abs_psi)
+    p1 = np.empty(psi.shape)
+    np.putmask(p1, ~zero_pot, psi * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_psi)))
+    np.putmask(p1, zero_pot, psi * 1 / np.sqrt(1 + beta*dt * abs_psi))
+    #p1[zero_pot] = psi * 1 / np.sqrt(1 + beta*dt * abs_psi)
 
-    p2 = 1
+    p2 = fft.ifft2(fft.fft2(p1) * np.exp(-eps*dt * (4*np.pi**2/len**2) * F2))
 
     abs_p2 = np.abs(p2)**2
-    p3 = p2 * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_p2))
-    p3[zero_pot] = p2 * 1 / np.sqrt(1 + beta*k*abs_p2)
+    p3 = np.empty(psi.shape)
+    np.putmask(p3, ~zero_pot, p2 * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_p2)))
+    np.putmask(p3, zero_pot, p2 * 1 / np.sqrt(1 + beta*dt * abs_p2))
+    #p3[zero_pot] = p2 * 1 / np.sqrt(1 + beta*dt * abs_p2)
 
-    return p3 / np.abs(p3)
+    return p3 / np.sqrt(dx*dy * np.sum(np.abs(p3)))
 
 
 
@@ -162,4 +173,16 @@ def mean_value(f, psi, a, b, M):
 
 
 
-if __name__ == "__main__":
+def gradient_2d(psi, x_spacing, y_spacing):
+    g = np.empty((2, psi.shape[0], psi.shape[1]))
+    g[0,:] = (np.roll(psi, 1, axis=0) - psi)/x_spacing
+    g[1,:] = (np.roll(psi, 1, axis=1) - psi)/y_spacing
+    return g
+
+
+
+def energy_gpe(psi, V, beta, x_spacing, y_spacing):
+    a = np.abs(psi)
+    g = gradient_2d(psi, x_spacing, y_spacing)
+    g2 = g[0,:]**2 + g[1,:]**2
+    return np.sum(0.5*g2 + V * a**2 + 0.5*beta * a**4)
