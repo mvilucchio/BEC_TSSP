@@ -4,6 +4,7 @@ from mpl_toolkits import mplot3d
 import matplotlib.animation as animation
 
 
+
 fig_size = (10, 6)
 cm_surface = cm.get_cmap('coolwarm')
 cm_pcolor = cm.get_cmap('Spectral')
@@ -143,7 +144,38 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
 
 
 
-def surface_animate(x, y, z, delay=200, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$'):
+def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$'):
+    """Short summary.
+
+    Parameters
+    ----------
+    X : ndarray
+        Matrix with values for the first axis on all the rows. The size should
+        be the same as Y.
+    Y : ndarry
+        Matrix with values for the second axis on all the columns. The size should
+        be the same as X.
+    Z : ndarray
+        Tensor containing the height of each point and each time. The first
+        dimension is for the time step and Z[i,:] should have the same dimension
+        as X and Y.
+    delay : int
+        Description of parameter `delay`. The default is 200.
+    title : str
+        Description of parameter `title`. The default is ''.
+    x_label : str
+        Description of parameter `x_label`. The default is r'$x$'.
+    y_label : str
+        Description of parameter `y_label`. The default is r'$y$'.
+    z_label : str
+        Description of parameter `z_label`. The default is r'$z$'.
+
+    Returns
+    -------
+    matplotlib.animation.ArtistAnimation(
+        The animation of the data with the given delay.
+
+    """
 
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca(projection='3d')
@@ -156,7 +188,7 @@ def surface_animate(x, y, z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
     frames = []
 
     for t in range(z.shape[0]):
-        s = ax.plot_surface(x, y, z[t,:], cmap=cm_surface, linewidth=0, antialiased=False)
+        s = ax.plot_surface(X, Y, Z[t,:], cmap=cm_surface, linewidth=0, antialiased=False)
         frames.append([s])
 
     anim = animation.ArtistAnimation(fig, frames, interval=delay, \
