@@ -33,7 +33,7 @@ def timeindep_tssp_1d_step(psi, V):
 
 
 
-def TSSP_2d(m, time_steps, a, b, psi0, potential, dt, k1, eps, i_coeff=False):
+def TSSP_2d(m, time_steps, a, b, psi0, potential, dt, k1, eps):
 
     grid_points = 2**m
     psi = np.empty((time_steps + 1, grid_points, grid_points), dtype=complex)
@@ -50,12 +50,8 @@ def TSSP_2d(m, time_steps, a, b, psi0, potential, dt, k1, eps, i_coeff=False):
 
     psi[0,:] = psi0(X, Y)
 
-    if i_coeff:
-        for i in range(time_steps + 1):
-            psi[i+1,:] = timeindep_tssp_2d_step(psi[i,:], k1, eps, V, Fx, Fy)
-    else:
-        for i in range(time_steps + 1):
-            psi[i+1,:] = timedep_tssp_2d_step(psi[i,:], k1, eps, V, Fx, Fy)
+    for i in range(time_steps + 1):
+        psi[i+1,:] = timeindep_tssp_2d_step(psi[i,:], k1, eps, V, Fx, Fy)
 
     return t, X, Y, psi
 
@@ -72,7 +68,7 @@ def timeindep_tssp_2d_step(psi, k1, eps, V, Fx, Fy):
 
 
 def timedep_tssp_2d_step(psi, k1, eps, V, Fx, Fy):
-    #to be changed
+
     psi1 = ps * np.exp(-1j*(V + k1*np.abs(psi)**2)*dt/(2*eps))
     psihat1 = fft.fft2(psi1)
     psihat2 = psihat1 * np.exp(-1j* eps*dt * 4*np.pi**2*(Fx**2 + Fy**2)/(b-a)**2)
@@ -80,8 +76,8 @@ def timedep_tssp_2d_step(psi, k1, eps, V, Fx, Fy):
     return psi2 * np.exp(-1j*(V + k1*np.abs(psi2)**2)*dt/(2*eps))
 
 
-'''
-def timedep_gp_1d(m, time_steps, a, b, psi0, beta, dt, potential):
+
+def timedep_gp_dbc_1d(m, time_steps, a, b, psi0, beta, dt, potential):
 
     grid_points = 2**m
     psi = np.empty((time_steps + 1, grid_points), dtype=complex)
@@ -104,7 +100,7 @@ def timedep_gp_1d(m, time_steps, a, b, psi0, beta, dt, potential):
 
 
 
-def timedep_tssp_1d_step(psi, V, expV, k, beta, mu_l, zero_pot):
+def timedep_tssp_dbc_1d_step(psi, V, expV, k, beta, mu_l, zero_pot):
 
     abs_psi = np.abs(psi)**2
     p1 = psi * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_psi))
@@ -117,7 +113,7 @@ def timedep_tssp_1d_step(psi, V, expV, k, beta, mu_l, zero_pot):
     p3[zero_pot] = p2 * 1 / np.sqrt(1 + beta*k*abs_p2)
 
     return p3 / np.abs(p3)
-'''
+
 
 
 def mean_value(f, psi, a, b, M):
@@ -125,7 +121,6 @@ def mean_value(f, psi, a, b, M):
     Return the mean value of a function evaluated on a square grid of size
     (b-a)^2 with M^2 points on it w.r.t. the probability density defined by
     the wavefunction psi.
-    ...
 
     Parameters
     ----------
@@ -164,3 +159,7 @@ def mean_value(f, psi, a, b, M):
         return np.sum(f(X,Y) * np.abs(psi)**2 * dA)
     else:
         raise RuntimeError("Size of psi should match the size of the grid.")
+
+
+
+if __name__ == "__main__":
