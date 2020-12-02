@@ -1,5 +1,6 @@
 # Testing file #
 test*.py
+test*.ipynb
 
 # OS generated files #
 ######################
@@ -10,6 +11,8 @@ test*.py
 *.Trashes
 ehthumbs.db
 Thumbs.db
+.ipynb_checkpoints
+__pycache__
 
 #Videos
 *.avi
