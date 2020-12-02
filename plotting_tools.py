@@ -1,15 +1,19 @@
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from matplotlib import cm
 from mpl_toolkits import mplot3d
 import matplotlib.animation as animation
+
 
 fig_size = (10, 6)
 cm_surface = cm.get_cmap('coolwarm')
 cm_pcolor = cm.get_cmap('Spectral')
 
-def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False):
+
+
+def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False):
     """
-    Generates a simple plot of the pairs of array x and y in a plane.
+    Generates a simple plot of the pairs of array x and y in a plane.
+
 
     Parameters
     ----------
@@ -31,7 +35,8 @@ cm_pcolor = cm.get_cmap('Spectral')
     Returns
     -------
     fig : matplotlib.figure.Figure
-        Figure with the plot.
+        Figure with the plot.
+
 
     """
     fig = plt.figure(figsize=fig_size)
@@ -160,21 +165,3 @@ def surface_animate(x, y, z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
     plt.show()
 
     return anim
-
-
-
-"""
-if __name__ == "__main__":
-    import numpy as np
-
-    x = np.linspace(-3, 3, 100)
-    y = np.arctan(x)
-    plane_plotter(x, y, title="Plane Plotter Test", x_label=r'$x$', y_label=r'$\arctan(x)$')
-
-    X, Y = np.meshgrid(x, x)
-    fun = lambda x, y : np.sin(np.sqrt(X**2 + Y**2))
-    Z = fun(X, Y)
-
-    pcolor_plotter(X, Y, Z, title="Pcolor Test")
-    surface_plotter(X, Y, Z, title="Surface Plotter Test", z_label=r'$\sin(x^2 + y^2)$')
-"""
