@@ -11,10 +11,9 @@ cm_pcolor = cm.get_cmap('Spectral')
 
 
 
-def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False):
+def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True):
     """
     Generates a simple plot of the pairs of array x and y in a plane.
-
 
     Parameters
     ----------
@@ -32,6 +31,8 @@ def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, l
         The horizontal axis should be in log scale. The default is False.
     log_y : bool, optional
         The vertical axis should be in log scale. The default is False.
+    show_plot: bool, optional
+        Flag for printing the figure with plt.show(). The default value is True.
 
     Returns
     -------
@@ -55,12 +56,14 @@ def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, l
     if log_y:
         ax.set_yscale('log')
 
-    plt.show()
+    if show_plot:
+        plt.show()
 
     return fig
 
 
-def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$'):
+
+def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True):
     """
     Generates a plane figure where the third varaible is represented as shades
     of color.
@@ -79,6 +82,8 @@ def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$'):
         Name of the horizontal axis. The default is r'$x$'.
     y_label : TYPE, optional
         Name of the vertical axis. The default is r'$y$'.
+    show_plot: bool, optional
+        Flag for printing the figure with plt.show(). The default value is True.
 
     Returns
     -------
@@ -96,12 +101,14 @@ def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$'):
     ax.set_ylabel(y_label)
     ax.set_title(title)
 
-    plt.show()
+    if show_plot:
+        plt.show()
 
     return fig
 
 
-def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$'):
+
+def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True):
     """
     Generates a 3D plot.
 
@@ -121,6 +128,8 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
         Name of the second axis. The default is r'$y$'.
     z_label : str, optional
         Name of the third axis. The default is r'$z$'.
+    show_plot: bool, optional
+        Flag for printing the figure with plt.show(). The default value is True.
 
     Returns
     -------
@@ -138,14 +147,16 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
     ax.set_zlabel(z_label, rotation=90)
     ax.set_title(title)
 
-    plt.show()
+    if show_plot:
+        plt.show()
 
     return fig
 
 
 
-def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$'):
-    """Short summary.
+def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True):
+    """
+    Animates a sequence of 3D data.
 
     Parameters
     ----------
@@ -169,6 +180,8 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
         Description of parameter `y_label`. The default is r'$y$'.
     z_label : str
         Description of parameter `z_label`. The default is r'$z$'.
+    show_plot: bool, optional
+        Flag for printing the figure with plt.show(). The default value is True.
 
     Returns
     -------
@@ -194,6 +207,7 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
     anim = animation.ArtistAnimation(fig, frames, interval=delay, \
                                      repeat_delay=2*delay, repeat=True, blit=False)
 
-    plt.show()
+    if show_plot:
+        plt.show()
 
     return anim
