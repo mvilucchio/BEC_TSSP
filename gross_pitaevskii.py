@@ -171,7 +171,7 @@ def mean_value(f, psi, a, b, M):
 
 
 def gradient_2d(psi, x_spacing, y_spacing):
-    g = np.empty((2, psi.shape[0], psi.shape[1]), dtype=complex)
+    g = np.empty((2, psi.shape[0], psi.shape[1]), dtype=psi.dtype)
     g[0,:] = (np.roll(psi, 1, axis=0) - psi)/x_spacing
     g[1,:] = (np.roll(psi, 1, axis=1) - psi)/y_spacing
     return g
