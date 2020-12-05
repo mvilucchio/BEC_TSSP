@@ -2,11 +2,7 @@
 
 Project for Numerical Methods Course @ ENS 2020
 
-<<<<<<< HEAD
 ### References
-=======
-### Referencies
->>>>>>> ecdfc3a5edd0c7b4d7eb73941a1bd2cec0af2f81
 
 The principal references from where one can find all the necessary informations are the following:
 
