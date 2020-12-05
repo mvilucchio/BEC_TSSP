@@ -80,7 +80,6 @@ def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, q, len, V, F2):
 
 def td_tssp_2d_pbc(M, time_steps, a, b, psi0, potential, dt, beta, eps):
 
-    #n = int(time_steps/every_n_t)
     x = np.linspace(a, b, M, endpoint=False)
     y = np.linspace(a, b, M, endpoint=False)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
@@ -94,7 +93,7 @@ def td_tssp_2d_pbc(M, time_steps, a, b, psi0, potential, dt, beta, eps):
     psi[0,:] = psi0(X, Y)
 
     V = potential(X, Y) / eps
-    zero_pot = V == 0.0
+    zero_pot = (V == 0.0).astype(int)
     expV = np.exp(- dt * V / eps)
 
     p = psi[0,:]
@@ -110,18 +109,16 @@ def td_tssp_2d_pbc(M, time_steps, a, b, psi0, potential, dt, beta, eps):
 def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, len, V, expV, zero_pot, F2):
 
     abs_psi = np.abs(psi)**2
-    p1 = np.empty(psi.shape)
-    np.putmask(p1, ~zero_pot, psi * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_psi)))
-    np.putmask(p1, zero_pot, psi * 1 / np.sqrt(1 + beta*dt * abs_psi))
-    #p1[zero_pot] = psi * 1 / np.sqrt(1 + beta*dt * abs_psi)
+    p1 = np.empty(psi.shape, dtype=complex)
+    p1 = psi * np.where(zero_pot, 1 / np.sqrt(1 + beta*dt * abs_psi), \
+                        np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_psi)) )
 
-    p2 = fft.ifft2(fft.fft2(p1) * np.exp(-eps*dt * (4*np.pi**2/len**2) * F2))
+    p2 = fft.ifft2(fft.fft2(p1) * np.exp(- eps*dt * (np.pi**2/len**2) * F2))
 
     abs_p2 = np.abs(p2)**2
-    p3 = np.empty(psi.shape)
-    np.putmask(p3, ~zero_pot, p2 * np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_p2)))
-    np.putmask(p3, zero_pot, p2 * 1 / np.sqrt(1 + beta*dt * abs_p2))
-    #p3[zero_pot] = p2 * 1 / np.sqrt(1 + beta*dt * abs_p2)
+    p3 = np.empty(psi.shape, dtype=complex)
+    p3 = p2 * np.where(zero_pot, 1 / np.sqrt(1 + beta*dt * abs_p2), \
+                        np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_p2)))
 
     return p3 / np.sqrt(dx*dy * np.sum(np.abs(p3)))
 
@@ -185,4 +182,4 @@ def energy_gpe(psi, V, beta, x_spacing, y_spacing):
     a = np.abs(psi)
     g = gradient_2d(psi, x_spacing, y_spacing)
     g2 = g[0,:]**2 + g[1,:]**2
-    return np.sum(0.5*g2 + V * a**2 + 0.5*beta * a**4)
+    return x_spacing*y_spacing * np.sum(0.5*g2 + V * a**2 + 0.5*beta * a**4)
