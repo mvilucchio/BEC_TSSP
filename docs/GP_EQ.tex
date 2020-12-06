@@ -1,6 +1,24 @@
 \documentclass[a4paper,10pt]{article}
 %\documentclass[a4paper,10pt]{scrartcl}
 
+\usepackage{geometry}
+\geometry{
+ a4paper,
+ total={175mm,243mm},
+ left=20mm,
+ top=20mm,
+ }
+ 
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{dsfont}
+
+\usepackage{physics}
+\usepackage{siunitx}
+\usepackage{slashed}
+
 \usepackage[utf8]{inputenc}
 
 \title{}
@@ -125,17 +143,17 @@ Last equation is the time independent Gross-Pitaevski equation. This clearly has
 
 \subsection{Dimensionless Gross-Pitaevskii Equation}
 To proceed with numerical simulation is more useful to work with a dimensionless GP equation. This result can be achieved by scaling quantities by unit dimensional quantities. In the particular case of an isotropic harmonic oscillator potential one has that the scaling quantities can be chosen as:
-\[
+\begin{equation}\label{eq:dimensionless-units}
 	\tilde{t}=\omega_{x} t, \quad \tilde{\mathbf{x}}=\frac{\mathbf{x}}{x_{s}}, \quad \tilde{\psi}(\tilde{\mathbf{x}}, \tilde{t})=x_{s}^{3 / 2} \psi(\mathbf{x}, t)
-\]
+\end{equation}
 Now by substituting inside the Gross-Pitaevskii equation and rescaling the relation one obtains:
 \[
 	\mathrm{i} \varepsilon \frac{\partial \psi(\mathbf{x}, t)}{\partial t}=-\frac{\varepsilon^{2}}{2} \nabla^{2} \psi(\mathbf{x}, t)+V(\mathbf{x}) \psi(\mathbf{x}, t)+\delta \varepsilon^{5 / 2}|\psi(\mathbf{x}, t)|^{2} \psi(\mathbf{x}, t)
 \]
 where some constants has been introduced:
-\[
+\begin{equation}\label{eq:adim-param}
 	\varepsilon=\frac{\hbar}{\omega m x_{s}^{2}}=\left(\frac{a_{0}}{x_{s}}\right)^{2}, \quad \delta=\frac{U_{0} N}{a_{0}^{3} \hbar \omega_{x}}=\frac{4 \pi a N}{a_{0}}, \quad a_{0}=\sqrt{\frac{\hbar}{\omega_{x} m}}
-\]
+\end{equation}
 where the product $\kappa := \delta \epsilon^{5/2}$ is called coefficient of non linearity.
 
 \section{Time dependent Gross-Pitaevskii Equation}
@@ -157,10 +175,25 @@ But just as the time independent one, the latter can be derived from variational
  \end{equation}
 where $\epsilon=\frac{\hbar^2}{2m}|\nabla\psi|^2+V(\vec{r})|\psi|^2+\frac{1}{2}U_0|\psi|^4$. Solving the variational problem one directly determines the time dependent Gross-Pitaevskii equation \ref{GP_time_Dep}.
 
-
-
-
-
+\section{Dimensionless Time Dependant Gross-Pitaevskii Equation}
+For the Time Dependant Gross-Pitaevskii equation one can find a dimensionless form like the following. One starts with defining the same dimensionless variables as in (\ref{eq:dimensionless-units}) and apply them to the following equation.
+\begin{equation*}
+	\hbar \pdv{\psi}{t} = -\frac{\hbar^2}{2m} \laplacian \psi + \frac{m}{2}\omega^2\qty(x^2 + y^2) \psi + NU_0 \abs{\psi}^2 \psi
+\end{equation*}
+where for dimensional reasons one chooses $\hbar$ as the proportionality coefficient for the time derivative term. The time and spatial derivative become:
+\begin{align*}
+	\pdv{t} &= \pdv{\tilde{t}}{t} \pdv{\tilde{t}} = \omega \pdv{\tilde{t}} \\
+	\pdv[2]{x} &= \pdv{\tilde{x}}{x} \pdv{\tilde{x}} \qty(\pdv{\tilde{x}}{x} \pdv{\tilde{x}}) = \frac{1}{x_s^2} \pdv[2]{\tilde{x}}
+\end{align*}
+and then by substituting one has that:
+\begin{equation*}
+	\frac{\hbar \omega}{x_s^{3/2}} \pdv{\tilde{\psi}}{\tilde{t}} = -\frac{\hbar^2}{2m} \frac{1}{x_s^{3/2}}\frac{1}{x_s^2} \tilde{\laplacian} \tilde{\psi} + \frac{m\omega^2}{2}\frac{x_s^2}{x_s^{3/2}}\qty(\tilde{x}^2 + \tilde{y}^2) \tilde{\psi} + NU_0\frac{1}{x_s^{3/2}}\frac{1}{x_s^{3}} \abs{\tilde{\psi}}^2 \tilde{\psi}
+\end{equation*}
+Now by removing the same power of $x_s$ from all the terms and multiplying by $1/m\omega^2 x_s^{1/2}$ one obtains from the previous definition of parameters (\ref{eq:adim-param}) one obtains, dropping the tilde notation, that:
+\begin{equation}
+	\varepsilon \pdv{\psi}{t} = -\frac{\varepsilon^2}{2} \laplacian \psi + \frac{1}{2} \qty(x^2 + y^2) \psi + \delta \epsilon^{5/2} \abs{\psi}^2 \psi
+\end{equation}
+to which we will refeer to as the \textit{time dependent dimensionless Gross-Pitaevskii equation}.
 
 
 
