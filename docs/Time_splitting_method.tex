@@ -1,0 +1,110 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{amsmath,amsfonts,amssymb}
+\DeclareMathOperator{\e}{e}
+\usepackage{geometry}
+\usepackage{ulem}
+\usepackage{comment}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{systeme}
+\usepackage{array}
+\usepackage{float}
+\usepackage{gensymb}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{hyperref}
+\usepackage{appendix}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[nottoc,notlot,notlof]{tocbibind}
+\usepackage{indentfirst}
+
+\title{Time-Splitting Method}
+\author{}
+\date{}
+
+\newcommand{\fder}[2]{\frac{\delta #1}{\delta f}\Bigr|_{#2}}
+\newcommand{\fint}[3]{\int\fder{#1}{#2}#3(#2)}
+
+\begin{document}
+
+\maketitle
+
+\subsection*{Justification of the Time-Splitting Method for non-linear operators}
+
+Let $\mathcal{H}$ be a sub-vector space of smooth enough functions of $\mathcal{F}(\mathbb{R}^3,\mathbb{C})$, $f_0\in \mathcal{H}$, $A$ and $B$ (not necessarily linear) operators $\mathcal{H} \longmapsto \mathcal{H}$.\par
+We are looking for $f:t\in \mathbb{R} \longmapsto f(t)\in \mathcal{H}$, such that (writing $f$ also for the function $(t,\mathbf{x}) \longmapsto f(t)(\mathbf{x})$):
+\begin{equation}\label{initialEq}
+    \partial_t f = A(f) + B(f)~~~~,~~~~\text{and} ~~ f(0)=f_0
+\end{equation}
+For fixed $t$ and small enough $\epsilon$, we want an approximation of $f(t+\epsilon)$ as a function of $f(t)$. Let $f^{(1)},f^{(2)},f^{(3)}\in \mathcal{H}$ such that:
+
+\begin{equation}\label{TSM}
+\begin{split}
+    \partial_t f^{(1)} &= A(f^{(1)})~~~~,~~~~ f^{(1)}(0)=f(t)\\
+    \partial_t f^{(2)} &= B(f^{(2)})~~~~,~~~~ f^{(2)}(0)=f^{(1)}(\frac{\epsilon}{2})\\
+    \partial_t f^{(3)} &= A(f^{(3)})~~~~,~~~~ f^{(3)}(0)=f^{(2)}(\epsilon)
+    \end{split}
+\end{equation}
+
+We are going to show that:
+\begin{equation}\label{Theo}
+    ||f(t+\epsilon)-f^{(3)}(\frac{\epsilon}{2})|| ~=~ \mathcal{O}(\epsilon^3)
+\end{equation}
+
+For $\mathbf{x}\in \mathbb{R}^3$, we define the functionals $A_\mathbf{x} : g \longmapsto A(g)(\mathbf{x})\in \mathbb{C}$ and $B_\mathbf{x} : g \longmapsto B(g)(\mathbf{x})\in \mathbb{C}$. We will assume that for all $\mathbf{x}$, $A_\mathbf{x}$ and $B_\mathbf{x}$ are smooth enough so that their functional derivatives exist and:
+\begin{equation}\label{Taylor}
+    F(g+\epsilon h)=F(g)+\int\text{d}^3\mathbf{x}\fder{F}{g}(\mathbf{x})\epsilon h(\mathbf{x})+\mathcal{O}(\epsilon^2)
+\end{equation}
+for $F=A_\mathbf{x},B_\mathbf{x}$. It also follows that:
+\begin{equation}\label{totalder}
+    \frac{\text{d}}{\text{d}t}F(g(t))=\int\text{d}^3\mathbf{x}\fder{F}{g}(\mathbf{x})~\partial_t g(t,\mathbf{x})
+\end{equation}
+
+Let $\mathbf{x}_0\in\mathbb{R}^3$. We have:
+$$f(t+\epsilon,\mathbf{x}_0)=f(t,\mathbf{x}_0)+\epsilon\partial_t f(t,\mathbf{x}_0)+\frac{\epsilon^2}{2}\partial_t^2 f(t,\mathbf{x}_0)+\mathcal{O}(\epsilon^3)$$
+From \eqref{initialEq} and using \eqref{totalder} we get:
+\begin{equation}\label{Eqf}
+    \begin{split}
+    f(t+\epsilon,\mathbf{x}_0)=&f(t,\mathbf{x}_0)~+~\epsilon (A_{\mathbf{x}_0}+B_{\mathbf{x}_0})(f(t))\\
+    &+\frac{\epsilon^2}{2}\int \text{d}^3\mathbf{x}\left[ \fder{A_{\mathbf{x}_0}}{f(t)}(\mathbf{x})+\fder{B_{\mathbf{x}_0}}{f(t)}(\mathbf{x}) \right]~ (A_{\mathbf{x}_0}+B_{\mathbf{x}_0})(f(t))(\mathbf{x}) ~+~\mathcal{O}(\epsilon^3)
+    \end{split}
+\end{equation}
+In the following, we will drop the $\mathbf{x}_0$. But we should remember that the equations should be written as \eqref{Eqf}.\par
+
+Let us now compute $f^{(3)}(\frac{\epsilon}{2})$. We will use \eqref{TSM}, \eqref{Taylor} and \eqref{totalder} and keep only second order terms in $\epsilon$ at most:
+\small
+\begin{align*}
+        f^{(3)}(\frac{\epsilon}{2})&= f^{(3)}(0) + \frac{\epsilon}{2}A(f^{(3)}(0)) + \frac{\epsilon^2}{8}\int \fder{A}{f^{(3)}(0)}A(f^{(3)}(0))~+~\mathcal{O}(\epsilon^3)
+\end{align*}
+\normalsize
+We have {\scriptsize $f^{(3)}(0)=f^{(2)}(\epsilon)=f^{(2)}(0)+\epsilon\partial_t f^{(2)}(0)+\frac{\epsilon^2}{2}\partial_t^2f^{(2)}(0)+\mathcal{O}(\epsilon^3)$}. So, Taylor expanding:
+\small
+\begin{align*}
+        f^{(3)}(\frac{\epsilon}{2})&= f^{(2)}(0)+\epsilon\partial_t f^{(2)}(0)+\frac{\epsilon^2}{2}\partial_t^2f^{(2)}(0) + \frac{\epsilon}{2}\left(A(f^{(2)}(0)+\int \fder{A}{f^{(2)}(0)}\epsilon\partial_t f^{(2)}(0)\right)\\
+        &\qquad \qquad \qquad+ \frac{\epsilon^2}{8}\int \fder{A}{f^{(2)}(0)}A(f^{(2)}(0)) ~+~\mathcal{O}(\epsilon^3)\\
+        &=f^{(2)}(0)+\epsilon\left[B(f^{(2)}(0)+A(f^{(2)}(0)\right]\\
+        &\qquad +\frac{\epsilon^2}{2}\left[\fint{B}{f^{(2)}(0)}{B}+\fint{A}{f^{(2)}(0)}{B}+\frac{1}{4}\fint{A}{f^{(2)}(0)}{A}\right]~+~\mathcal{O}(\epsilon^3)
+\end{align*}
+\normalsize
+Again we have {\scriptsize $f^{(2)}(0)=f^{(1)}(\frac{\epsilon}{2})=f^{(1)}(0)+\frac{\epsilon}{2}\partial_t f^{(1)}(0)+\frac{\epsilon^2}{8}\partial_t^2f^{(1)}(0)+\mathcal{O}(\epsilon^3)$}, so:
+\small
+\begin{align*}
+        f^{(3)}(\frac{\epsilon}{2})&= f^{(1)}(0)+\frac{\epsilon}{2}\partial_t f^{(1)}(0)+\frac{\epsilon^2}{8}\partial_t^2f^{(1)}(0)\\&\qquad+ \epsilon\left(B(f^{(1)}(0))+\int \fder{B}{f^{(1)}(0)}\frac{\epsilon}{2}\partial_t f^{(1)}(0)+\frac{1}{2}A(f^{(1)}(0))+\frac{1}{2}\int \fder{A}{f^{(1)}(0)}\frac{\epsilon}{2}\partial_t f^{(1)}(0)\right)\\
+        &\qquad \qquad + \frac{\epsilon^2}{2}\left(\fint{B}{f^{(1)}(0)}{B}+\fint{A}{f^{(1)}(0)}{B}+\frac{1}{4}\fint{A}{f^{(1)}(0)}{A}\right) ~+~\mathcal{O}(\epsilon^3)
+\end{align*}
+\normalsize
+Gathering terms, we get:
+\begin{equation}\label{Eqf3}
+    \begin{split}
+    f^{(3)}(\frac{\epsilon}{2})=& f^{(1)}(0)~+~\epsilon (A+B)(f^{(1)}(0))\\
+    &+\frac{\epsilon^2}{2}\int \left[ \fder{A}{f^{(1)}(0)}+\fder{B}{f^{(1)}(0)} \right]~ (A+B)(f^{(1)}(0)) ~+~\mathcal{O}(\epsilon^3)
+    \end{split}
+\end{equation}
+Since $f^{(1)}(0)=f(t)$, we see that it is the same as \eqref{Eqf}. Hence we proved \eqref{Theo}.
+
+\end{document}
