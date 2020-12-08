@@ -1,0 +1,158 @@
+\documentclass[a4paper,10pt]{article}
+%\documentclass[a4paper,10pt]{scrartcl}
+
+\usepackage[utf8]{inputenc}
+\usepackage{color,soul}
+
+\title{Solution of the TDGP equation using TSSM}
+\author{Carlos Lopetegui}
+\date{\today}
+
+\pdfinfo{%
+  /Title    ()
+  /Author   ()
+  /Creator  ()
+  /Producer ()
+  /Subject  ()
+  /Keywords ()
+}
+
+\begin{document}
+\maketitle
+The objective we pursue in this first part is to implement a solution to the time dependent Gross-Pitaevskii (TDGP) equation based on a Time Splitting Spectral Method as proposed in \cite{BaoJack}. Let's recall the shape of the TDGP equation in the presence of an arbitrary potential $V(\vec{r},t)$.
+\begin{equation}\label{GP_time_Dep}
+ i\hbar \frac{\partial \psi(\vec{r},t)}{\partial t}=\left(\frac{-\hbar^2}{2m}\nabla^2 +V(\vec{r},t) +U_0 N |\psi(\vec{r},t)|^2 \right)\psi(\vec{r}),t
+\end{equation}
+The solution of this non linear Schrodinger equation must be normalized:
+\begin{equation}
+ \int_{\Re^3}|\psi(\vec{r},t)|^2 dx=1
+\end{equation}
+If a harmonic trap potential is considered the equation takes the particular form:
+\begin{equation}\label{pot_trap_GPE}\label{GP_time_Dep}
+ i\hbar \frac{\partial \psi(\vec{r},t)}{\partial t}=\left(\frac{-\hbar^2}{2m}\nabla^2 +\frac{m}{2}(\omega_x^2x^2+\omega_y^2y^2+\omega_z^2 z^2) +U_0 N |\psi(\vec{r},t)|^2 \right)\psi(\vec{r},t)
+\end{equation}
+\subsection{Dimensionless TDGPE}
+The previous equation can be re-scaled and stated in a dimensionless manner. Let's introduce:
+\begin{equation}
+\tilde{t}=\omega_xt,      \tilde{\mathbf{r}}=\frac{\mathbf{r}}{l_s},\tilde{\psi}(\tilde{\mathbf{r}},\tilde{t})=l_s^{3/2}\psi(\mathbf{r},t)
+\end{equation}
+Where $l_s$ is  the characteristic length of the condensate. Inserting the re-scaling in \ref{pot_trap_GPE} we obtain as a first intermediate result:
+\begin{equation}
+ i \hbar \omega_x\frac{\partial \tilde{\psi}}{\partial \tilde{t}}=-\frac{\hbar^2}{2 m l_s^2}\nabla_{\tilde{\mathbf{r}}}^2 \tilde{\psi}+\frac{m\omega_x^2 \tilde{\psi}l_s^2}{2}(\tilde{x}^2+\gamma_y^2\tilde{y}^2+\gamma_z^2\tilde{z}^2)+U_0N l_s^{4/3}|\tilde{\psi}|^2\tilde{\psi} 
+\end{equation}
+Where $\gamma_{j}=\omega_{j}/\omega_{x}$. Now, we perform multiply all the equation by $1/(m\omega_x^2l_s^{1/2})$. By doing this we obtain:
+\begin{equation}\label{dim_less_GPE}
+ i \epsilon \frac{\partial \psi}{\partial t}=-\frac{\epsilon^2}{2}\nabla^2\psi+V(\vec{r})\psi+\delta \epsilon^{5/2}|\psi|^2\psi 
+\end{equation}
+where all tildes have been removed (both time and position are expressed in relative units), and:
+\begin{center}
+ $\epsilon=\frac{\hbar}{\omega_x m l_s^2}=\left(\frac{a_0}{l_s}\right)^2$\\
+$ V(\vec{r})=\frac{x^2+\gamma_{y}^2y^2+\gamma_{z}^2z^2}{2}$\\
+$\delta=\frac{U_0 N}{a_0^3\hbar \omega_x}$\\
+$a_0=\sqrt{\frac{\hbar}{\omega_x m}}$
+\end{center}
+The term $\delta \epsilon^{5/2}$ is usually represented as $\kappa$ in the sake of clarity.
+It is worth recalling the expression for $U_0=\frac{4 \pi \hbar^2a}{m}$, where $a$ is positive for repulsive interaction and negative for  attractive interactions. Recalling this, we can re express $\kappa$ as:
+\begin{equation}
+ \kappa=\delta \epsilon^{5/2}=\frac{4\pi a N}{a_0}\left(\frac{a_0}{x_s}\right)^2
+\end{equation}
+There are two extreme cases possible:
+\begin{itemize}
+ \item weakly interacting regimes, in which $\epsilon=\mathcal{O}(1)$ ($ \Leftrightarrow a_0=\mathcal{O}(l_s)$), and, $\kappa=o(1)$($\Leftrightarrow 4\pi|a|N\ll a_0$) 
+ \item strong interacting regimes $\epsilon=o(1)$ ($ \Leftrightarrow a_0\ll  l_s$), and $\kappa=o(1)$($\Leftrightarrow 4\pi|a|N\ll a_0$) 
+\end{itemize}
+From now on we work with the dimensionless equation \ref{dim_less_GPE}. We present in the next section the numerical scheme in which we solve this nonlinear equation. 
+\section{Time Splitting Spectral Method}
+ The implementation we perform follows the Time-splitting Spectral Method, as proposed in \cite{Bao_Jack}. The method proposed combines both time splitting and spectral methods based on Fourier Transform to particularly solve equation \ref{dim_less_GPE}. Several aspects that will be discussed bellow lead to this selection. Yet, an important feature of the method used is that it is unconditionally stable, time reversible, time-transverse invariant and conserves the total number of particles (\textcolor{red}{can we show this? On the other side what does it even means that it conserves the total number of particles if the equation they are solving does not actually deal with a multiparticle wave function, they are doing Mean Field. Is it just that it conserves the probability distribution, i mean $|\psi|^2$ }) \\
+ Let's present the method first for the one dimensional version of the model. Then, the generalization is straightforward. The equation in 1D, defined using periodic boundary conditions is given by:
+ \begin{equation}
+ i \epsilon \frac{\partial \psi}{\partial t}=-\frac{\epsilon^2}{2}\frac{\partial^2}{\partial x^2}\psi+\frac{x^2}{2}\psi+\kappa_1|\psi|^2\psi \;\;\;\; a< x< b  
+ \end{equation}
+\begin{equation}
+ \psi(x,t=0)=\psi^{0}(x) \;\;\; a\leq x\leq b
+\end{equation}
+\begin{equation}
+ \psi(a,t)=\psi(b,t), \;\;\;\; \psi_x(a,t)=\psi_x(b,t), \;\;\; t>0
+\end{equation}
+ To numerically solve the equation we discretize both in time and space. In particular we solve the problem in a spatial grid given by:
+ \begin{equation}
+  x_j=a+j h, \;\;\;\; h=(a-b)/M \;\;\;\; j=0,1,2,...,M
+ \end{equation}
+the time step being $k=\Delta t>0$, so that:
+\begin{equation}
+ t_n=n k.
+\end{equation}
+The approximation of the solution for time $t_n$ in position $x_j$ will be given by $\psi_j^n$
+ The numerical update in time from $t_n$ to $t_{n+1}=t_n+k$, will be performed via a Strang splitting, which approimates the solution of the equation by splitting the solution of the whole equation into two steps, first:
+\begin{equation}
+i \epsilon \frac{\partial \psi}{\partial t}=\frac{x^2}{2}\psi(x,t)+\kappa_1 |\psi(x,t)|^2\psi(x,t),
+\end{equation}
+and then 
+\begin{equation}
+i \epsilon \frac{\partial \psi}{\partial t}=-\frac{\epsilon^2}{2}\frac{\partial^2 \psi(x,t)}{\partial x^2}. 
+\end{equation}
+The first equation can be easily shown to preserve the norm of $\psi$. We profit from this fact to solve it exactly from $t_n\rightarrow t_{n+1}$, as it can be written as:
+\begin{equation}
+i \epsilon \frac{\partial \psi}{\partial t}=\frac{x^2}{2}\psi(x,t)+\kappa_1 |\psi(x,t_n)|^2\psi(x,t),
+\end{equation}
+which can be easily integrated as the term $|\psi(x,t_n)|^2$
+enter just as a constant.\\ 
+The second equation can be integrated exactly in time after going to Fourier space for the position coordinate. \\
+Finally, the actual update step from $t_n$ to $t_{n+1}=t_n+2k$ will be split in three parts in a way that we gain one order in the error of the solution:
+\begin{equation}
+\psi(x_j,t_{n}+\frac{k}{2})=\psi_j^*=\psi_j^n\exp(-i(x_j^2/2+\kappa_1|\psi_j^n|^2)\frac{k}{2 \epsilon})
+\end{equation}
+\begin{equation}
+\psi(x_j,t_{n}+\frac{3 k}{2})=\psi_j^{**}=\sum_{l=-M/2}^{M/2+1}\exp(-i \frac{\epsilon k \mu_l^2}{2})\hat{\psi}_l^* \exp(i \mu_l (x_j-a))
+\end{equation}
+\begin{equation}
+\psi_j^{n+1}=\psi_j^{**}\exp(-i(x_j^2/2+\kappa_1|\psi_j^{**}|^2)\frac{k}{2 \epsilon})
+\end{equation}
+In the second equation, 
+\begin{equation}
+\hat{\psi_{l}}(x)^*=\sum_{j=0}^{M-1} \psi(x_j)^*\exp(-i \mu_l(x_j-a)) \;\;\;\;\mu_l=\frac{2\pi l}{b-a} \;\;\;\;
+l=-\frac{M}{2},-\frac{M}{2}+1 ... \frac{M}{2}-1
+\end{equation}
+\textcolor{red}{Here we should present some discussion with respect to 
+\begin{itemize}
+ \item The Strang Splitting, and why breaking into three steps really reduces the error.
+ \item The effect of the boundary conditions and how it can be reduced (aliasing effects for example).
+ \item Error introduced by the space discretization. Actually I think Kris left this to us as an exercise. 
+\end{itemize}
+}
+Finally, to analyze the solution of the equation we do, in one side, look directly into the shape of the solution for different time steps. On the other side, it is worth and brings quite a physical intuition on the properties of the condensate, to look at the evolution of the variance of the distribution function $|\psi(x,t)^2|$. It is defined as:
+\begin{equation}
+ \sigma_x^2=\sqrt{\langle(x-\langle x\rangle)\rangle}
+\end{equation} 
+In the more general case off dimension $d$ we can calculate $\sigma_j$ in each coordinate axis $j={1,..,d}$. The mean values are calculated by:
+\begin{equation}
+ \langle f\rangle=\int_{\Re^d}f(\vec{r})|\psi(\vec{r},t)|^2
+\end{equation}
+\section{Numerical Results in 1D}
+To test the performance of the implementation we firstly studied the 1D GPE in a harmonic potential, for a system with $\kappa_1>0$, which implies that the condensate have repulsive interaction, under exponentially decaying initial condition:
+\begin{equation}
+\psi(x,0)=\frac{1}{(\pi \epsilon)^{1/4}}\exp(-x^2/(2\epsilon)) 
+\end{equation}
+We work on a strong interaction scheme with $\epsilon=0.1$, $\kappa_1=1.2649$, on the ``box'' $x=[-16,16]$.
+
+
+\section{2D defocusing condensate}
+In this section we extend the analysis to a 2D condensate.
+We rewrite the TDGPE, now for 2D:
+\begin{equation}
+ i \epsilon \frac{\partial \psi}{\partial t}=-\frac{\epsilon^2}{2}\nabla^2\psi+\frac{x^2+\gamma_{y}^2 y^2}{2}\psi+\kappa_2|\psi|^2\psi 
+\end{equation}
+We will focus particularly in the isotropic trap, $\gamma_y=1$.\\
+The implementation is exactly as for the 1D condensate, just that now, we solve the problem in a 2D grid which is the tensor product of the partition in the $y$ and $x$ direction. It implies that one performs a two dimensional Fourier analysis. Further than that no spatial complication arise neither remarkable numerical issues. In particular no modification is necessary in the Strang Splitting which remains unconditionally stable (\textcolor{red}{Need to prove it I think}). The set of parameters with which we worked were: 
+\begin{equation}
+ \epsilon=1.0 \;\;\;\;\kappa_2=2.0
+\end{equation}
+Which corresponds to $\mathcal{O}(1)$ interactions (strong). We use gaussian shaped initial conditions to test the method. 
+\begin{equation}
+ \psi(x,y,0)=\frac{1}{\sqrt{\pi \epsilon}}\exp(-(x^2+y^2)/(2\epsilon))
+\end{equation}
+
+
+
+
+\end{document}
