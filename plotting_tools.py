@@ -10,7 +10,7 @@ cm_pcolor = cm.get_cmap('Spectral')
 
 
 
-def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True):
+def plane_plotter(x, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True):
     """
     Generates a simple plot of the pairs of array x and y in a plane.
 
@@ -18,8 +18,9 @@ def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, l
     ----------
     x : numpy.ndarray
         Values on the horizontal axis.
-    y : numpy.ndarray
-        Values on the vertical axis.
+    y : numpy.ndarray or list
+        Values on the vertical axis. Every element of the list should be a
+        numpy.ndarray.
     title : str, optional
         Title of the plot. The default is ''.
     x_label : str, optional
@@ -39,10 +40,14 @@ def plane_plotter(x, y, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, l
         Figure with the plot.
 
     """
+    if not isinstance(y_list, list):
+        y_list = [y_list]
+
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
 
-    ax.plot(x, y)
+    for i, y in enumerate(y_list):
+        ax.plot(x, y)
 
     ax.grid()
     ax.set_xlabel(x_label)
