@@ -10,15 +10,15 @@ cm_pcolor = cm.get_cmap('Spectral')
 
 
 
-def plane_plotter(x, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True):
+def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True):
     """
     Generates a simple plot of the pairs of array x and y in a plane.
 
     Parameters
     ----------
-    x : numpy.ndarray
+    x_list : numpy.ndarray
         Values on the horizontal axis.
-    y : numpy.ndarray or list
+    y_list : numpy.ndarray or list
         Values on the vertical axis. Every element of the list should be a
         numpy.ndarray.
     title : str, optional
@@ -34,19 +34,34 @@ def plane_plotter(x, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=Fal
     show_plot: bool, optional
         Flag for printing the figure with plt.show(). The default value is True.
 
+    Raises
+    ------
+    ValueError
+        If the size of the given list don't match any of the case.
+
     Returns
     -------
     fig : matplotlib.figure.Figure
         Figure with the plot.
 
     """
+
     if not isinstance(y_list, list):
         y_list = [y_list]
+
+    if not isinstance(x_list, list):
+        x_list = [x_list]
+
+    if len(x_list) == 1:
+        x_list = x_list * len(y_list)
+
+    if len(x_list) != len(y_list):
+        raise ValueError('The number of elements for x_list and y_list should be the same or 1 for x_list.')
 
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
 
-    for i, y in enumerate(y_list):
+    for x, y in zip(x_list, y_list):
         ax.plot(x, y)
 
     ax.grid()
