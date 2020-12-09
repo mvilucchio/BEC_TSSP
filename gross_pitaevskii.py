@@ -146,7 +146,7 @@ def mean_value(f, psi, a, b, M):
 
     Raises
     ------
-    RuntimeError
+    ValueError
         If the size of psi don't match with the gird of paramethes a, b and M.
 
     Returns
@@ -166,7 +166,7 @@ def mean_value(f, psi, a, b, M):
     if psi.shape == x.shape:
         return np.sum(f(X,Y) * np.abs(psi)**2 * dA)
     else:
-        raise RuntimeError("Size of psi should match the size of the grid.")
+        raise ValueError("Size of psi should match the size of the grid.")
 
 
 
