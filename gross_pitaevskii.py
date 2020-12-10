@@ -12,6 +12,14 @@ def get_freq(N):
 
 
 
+def get_mu(M, leng):
+    arr = np.zeros((M,))
+    arr[0:int(M-np.floor(M/2))] = np.array(range(0,int(M-np.floor(M/2))))
+    arr[int(M-np.floor(M/2)):M] = np.array(range(0,int(np.floor(M/2)))) - np.floor(M/2)
+    return 2 * np.pi * arr/leng
+
+
+
 def ti_tssp_1d_pbc(m, N, a, b, psi0, potential, dt, k, eps):
 
     grid_points = 2**m
@@ -78,49 +86,66 @@ def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, q, len, V, F2):
 
 
 
-def td_tssp_2d_pbc(M, time_steps, a, b, psi0, potential, dt, beta, eps):
+def td_tssp_2d_pbc(M, time_steps, saving_time, x_range, y_range, y_max, psi0, potential, dt, beta, eps):
 
-    x = np.linspace(a, b, M, endpoint=False)
-    y = np.linspace(a, b, M, endpoint=False)
+    if time_steps % saving_time != 0:
+        raise ValueError('The parameter saving_time should divide time_steps.')
+
+    if x_range is not list or y_range is not list:
+        raise ValueError('The parameters x_range and y_range should be lists.')
+
+    if len(x_range) != 2 or len(y_range) != 2:
+        raise ValueError('The parameters x_range and y_range should be of two elements.')
+
+    x_max = x_range[1]
+    x_min = x_range[0]
+    y_max = y_range[1]
+    y_min = y_range[0]
+
+    x = np.linspace(x_min, x_max, M, endpoint=False)
+    y = np.linspace(y_min, y_max, M, endpoint=False)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
-    t = dt * np.arange(time_steps)
-    f = get_freq(M)
+    t = dt * np.arange(time_steps / saving_time)
+    mux = get_mu(M, x_max - x_min)
+    muy = get_mu(M, y_min - y_max)
 
-    Fx, Fy = np.meshgrid(f, f, sparse=False, indexing="ij")
-    F2 = Fx**2 + Fy**2
+    Mux, Muy = np.meshgrid(mux, muy, sparse=False, indexing="ij")
+    Mu2 = Mux**2 + Muy**2
 
-    psi = np.empty((time_steps, M, M), dtype=complex)
+    psi = np.empty((time_steps/saving_time, M, M), dtype=complex)
     psi[0,:] = psi0(X, Y)
 
     V = potential(X, Y) / eps
-    zero_pot = (V == 0.0).astype(int)
-    expV = np.exp(- dt * V / eps)
+    zero_pot = (np.abs(V) < EPS).astype(int)
+    expV = np.exp(- dt * V )
 
     p = psi[0,:]
 
     for i in range(1, time_steps):
-        psi[i,:] = _td_tssp_pbc_2d_step(psi[i-1,:], dt, beta, eps, x[2]- x[1], x[2]- x[1], b-a, \
-                                        V, expV, zero_pot, F2)
+        p = _td_tssp_pbc_2d_step(p, dt, beta, eps, x[2]- x[1], y[2]- y[1], \
+                                        V, expV, zero_pot, Mu2)
+        if i % saving_time == 0:
+            psi[i / saving_time,:] = p
 
     return t, X, Y, psi
 
 
 
-def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, len, V, expV, zero_pot, F2):
+def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, V, expV, zero_pot, Mu2):
 
     abs_psi = np.abs(psi)**2
     p1 = np.empty(psi.shape, dtype=complex)
     p1 = psi * np.where(zero_pot, 1 / np.sqrt(1 + beta*dt * abs_psi), \
                         np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_psi)) )
 
-    p2 = fft.ifft2(fft.fft2(p1) * np.exp(- eps*dt * (np.pi**2/len**2) * F2))
+    p2 = fft.ifft2(fft.fft2(p1) * np.exp(- eps*dt * Mu2 /2))
 
     abs_p2 = np.abs(p2)**2
     p3 = np.empty(psi.shape, dtype=complex)
     p3 = p2 * np.where(zero_pot, 1 / np.sqrt(1 + beta*dt * abs_p2), \
                         np.sqrt((V*expV) / (V + beta*(1 - expV)*abs_p2)))
 
-    return p3 / np.sqrt(dx*dy * np.sum(np.abs(p3)))
+    return p3 / np.sqrt(dx*dy * np.sum(np.abs(p3)**2))
 
 
 
@@ -183,3 +208,11 @@ def energy_gpe(psi, V, beta, x_spacing, y_spacing):
     g = gradient_2d(psi, x_spacing, y_spacing)
     g2 = g[0,:]**2 + g[1,:]**2
     return x_spacing*y_spacing * np.sum(0.5*g2 + V * a**2 + 0.5*beta * a**4)
+
+
+
+def mu_gpe(psi, V, beta, x_spacing, y_spacing):
+    a = np.abs(psi)
+    g = gradient_2d(psi, x_spacing, y_spacing)
+    g2 = np.abs(g[0,:])**2 + np.abs(g[1,:])**2
+    return x_spacing*y_spacing * np.sum(0.5*g2 + V * a**2 + beta * a**4)
