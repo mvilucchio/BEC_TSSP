@@ -230,3 +230,39 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
         plt.show()
 
     return anim
+
+
+
+def quiver_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='', show_plot=True):
+
+    if isinstance(z, list):
+        if len(z) != 2 or len(z[0].shape) != 2 or len(z[0].shape) != 2:
+            raise ValueError("a")
+        else:
+            q_x = z[0]
+            q_y = z[1]
+    else:
+        if len(z.shape) != 3:
+            raise ValueError("a")
+        else:
+            q_x = z[0,:]
+            q_y = z[1,:]
+
+    if q_x.shape != x.shape or q_x.shape != y.shape or q_y.shape != x.shape or q_y.shape != y.shape:
+        raise ValueError("a")
+
+    fig = plt.figure(figsize=fig_size)
+    ax = fig.gca()
+
+    Q = ax.quiver(x, y, q_x, q_y, pivot='tail')
+    ax.quiverkey(Q, 0.9, 0.9, 1, '1' + mes_unit, labelpos='E',
+                   coordinates='figure')
+
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title(title)
+
+    if show_plot:
+        plt.show()
+
+    return fig
