@@ -7,6 +7,7 @@ import matplotlib.animation as animation
 fig_size = (10, 6)
 cm_surface = cm.get_cmap('coolwarm')
 cm_pcolor = cm.get_cmap('Spectral')
+cm_contour = cm.get_cmap('winter')
 
 
 
@@ -124,6 +125,24 @@ def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
 
     return fig
 
+
+
+def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True):
+
+    fig = plt.figure(figsize=fig_size)
+    ax = fig.gca()
+
+    cp = ax.contour(X, Y, Z, cmap=cm_contour)
+    ax.clabel(cp, inline=1, fontsize=10)
+
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title(title)
+
+    if show_plot:
+        plt.show()
+
+    return fig
 
 
 def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True):
