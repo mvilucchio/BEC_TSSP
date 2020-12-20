@@ -122,7 +122,7 @@ def td_tssp_2d_pbc(M, time_steps, saving_time, x_range, y_range, y_max, psi0, po
     p = psi[0,:]
 
     for i in range(1, time_steps):
-        p = _td_tssp_pbc_2d_step(p, dt, beta, eps, x[2]- x[1], y[2]- y[1], \
+        p = _td_tssp_pbc_2d_step(p, dt, beta/eps, eps, x[2] - x[1], y[2] - y[1], \
                                         V, expV, zero_pot, Mu2)
         if i % saving_time == 0:
             psi[i / saving_time,:] = p
@@ -149,47 +149,27 @@ def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, V, expV, zero_pot, Mu2):
 
 
 
-def mean_value(f, psi, a, b, M):
-    """
-    Return the mean value of a function evaluated on a square grid of size
-    (b-a)^2 with M^2 points on it w.r.t. the probability density defined by
-    the wavefunction psi.
+def mean_value_2d(f, psi, x_range, y_range, M):
 
-    Parameters
-    ----------
-    f : function, 2 arguments
-        The function of which calculate the mean value. First argument should
-        be the x coordinate and the second the y coordinate.
-    psi : numpy matrix
-        Wave function that defines the probability deensity.
-    a : float
-        Beginning of the two axes.
-    b : float
-        Ending of the two axes.
-    M : int
-        Number of points per axis.
+    if x_range is not list or y_range is not list:
+        raise ValueError('The parameters x_range and y_range should be lists.')
 
-    Raises
-    ------
-    ValueError
-        If the size of psi don't match with the gird of paramethes a, b and M.
+    if len(x_range) != 2 or len(y_range) != 2:
+        raise ValueError('The parameters x_range and y_range should be of two elements.')
 
-    Returns
-    -------
-    scalar
-        mean value of the function f.
+    x_max = x_range[1]
+    x_min = x_range[0]
+    y_max = y_range[1]
+    y_min = y_range[0]
 
-    """
-    delta = np.abs(b-a)/M
-    #this is the area element for the case of a square grid. a,b represent the limits of the square in 2D
-    dA = delta**2
+    dA = (b-a)*(d-c)/(M**2)
 
     x = np.linspace(a, b, M)
     y = np.linspace(a, b, M)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
 
     if psi.shape == x.shape:
-        return np.sum(f(X,Y) * np.abs(psi)**2 * dA)
+        return np.sum(f(X,Y) * np.abs(psi)**2) * dA
     else:
         raise ValueError("Size of psi should match the size of the grid.")
 
@@ -197,17 +177,27 @@ def mean_value(f, psi, a, b, M):
 
 def gradient_2d(psi, x_spacing, y_spacing):
     g = np.empty((2, psi.shape[0], psi.shape[1]), dtype=psi.dtype)
-    g[0,:] = (np.roll(psi, 1, axis=0) - psi)/x_spacing
-    g[1,:] = (np.roll(psi, 1, axis=1) - psi)/y_spacing
+    g[0,:] = (psi - np.roll(psi, 1, axis=0))/x_spacing
+    g[1,:] = (psi - np.roll(psi, 1, axis=1))/y_spacing
     return g
 
 
 
-def energy_gpe(psi, V, beta, x_spacing, y_spacing):
+def veloc_2d(psi, x_spacing, y_spacing):
+    v = np.empty((2, psi.shape[0], psi.shape[1]), dtype=psi.dtype)
+    zero_abs = (np.abs(psi)**2 < -5).astype(int)
+    v = np.where(zero_abs, 0, gradient_2d(psi, x_spacing, y_spacing) * np.conj(psi) - \
+                 psi * gradient_2d(np.conj(psi), x_spacing, y_spacing)) / (1j*np.abs(psi)**2)
+    return v
+
+
+
+
+def energy_gpe(psi, V, beta, eps, x_spacing, y_spacing):
     a = np.abs(psi)
     g = gradient_2d(psi, x_spacing, y_spacing)
     g2 = g[0,:]**2 + g[1,:]**2
-    return x_spacing*y_spacing * np.sum(0.5*g2 + V * a**2 + 0.5*beta * a**4)
+    return x_spacing * y_spacing * np.sum(0.5*eps * g2 + V/eps * a**2 + 0.5*beta/eps * a**4)
 
 
 
@@ -215,4 +205,4 @@ def mu_gpe(psi, V, beta, x_spacing, y_spacing):
     a = np.abs(psi)
     g = gradient_2d(psi, x_spacing, y_spacing)
     g2 = np.abs(g[0,:])**2 + np.abs(g[1,:])**2
-    return x_spacing*y_spacing * np.sum(0.5*g2 + V * a**2 + beta * a**4)
+    return x_spacing*y_spacing * np.sum(0.5*eps * g2 + V/eps * a**2 + beta/eps * a**4)
