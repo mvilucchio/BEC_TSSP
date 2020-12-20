@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
-#from mpl_toolkits import mplot3d
+from mpl_toolkits import mplot3d
 import matplotlib.animation as animation
 
 
@@ -136,7 +136,7 @@ def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_
 
 
 
-def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True):
+def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
     """
     Generates a plane figure where the third varaible is represented as shades
     of color.
@@ -172,7 +172,10 @@ def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.set_title(title)
+    title = ax.set_title(title)
+
+    if dark:
+        _darkizer(fig, ax, title)
 
     if show_plot:
         plt.show()
@@ -204,7 +207,7 @@ def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot
 
 
 
-def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True):
+def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True, dark=False):
     """
     Generates a 3D plot.
 
@@ -242,7 +245,10 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_zlabel(z_label, rotation=90)
-    ax.set_title(title)
+    title = ax.set_title(title)
+
+    if dark:
+        _darkizer(fig, ax, title)
 
     if show_plot:
         plt.show()
@@ -311,7 +317,7 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
 
 
 
-def quiver_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='', show_plot=True):
+def quiver_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='', show_plot=True, dark=False):
 
     if isinstance(z, list):
         if len(z) != 2 or len(z[0].shape) != 2 or len(z[0].shape) != 2:
@@ -338,7 +344,11 @@ def quiver_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.set_title(title)
+    title = ax.set_title(title)
+
+    if dark:
+        _darkizer(fig, ax, title)
+
 
     if show_plot:
         plt.show()
