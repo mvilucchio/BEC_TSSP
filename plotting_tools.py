@@ -1,17 +1,68 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import cm
-from mpl_toolkits import mplot3d
+#from mpl_toolkits import mplot3d
 import matplotlib.animation as animation
 
 
 fig_size = (10, 6)
+
+# colourmaps
 cm_surface = cm.get_cmap('coolwarm')
 cm_pcolor = cm.get_cmap('Spectral')
 cm_contour = cm.get_cmap('winter')
 
+# colours
+blk_background = '#121212'
+text_color = '#D0D0D0'
+grid_line_color = '#646464'
 
 
-def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True):
+
+# remember the squeeze attribute for subplots
+def _darkizer(fig, axes, title):
+
+    fig.patch.set_facecolor(blk_background)
+
+    if isinstance(axes, np.ndarray):
+        if len(axes.shape) == 1:
+            axes = np.expand_dims(axes, 0)
+    else:
+        axes = np.array([[axes]])
+
+    for i in range(axes.shape[0]):
+        for j in range(axes.shape[1]):
+            axes[i,j].set_facecolor(blk_background)
+
+            axes[i,j].xaxis.label.set_color(text_color)
+            axes[i,j].yaxis.label.set_color(text_color)
+
+            axes[i,j].title.set_color(text_color)
+
+            for _, spine in axes[i,j].spines.items():
+                spine.set_color(text_color)
+
+            for xline in axes[i,j].get_xgridlines():
+                xline.set_color(grid_line_color)
+
+            for yline in axes[i,j].get_ygridlines():
+                yline.set_color(grid_line_color)
+
+            for xticklab in axes[i,j].get_xticklabels():
+                xticklab.set_color(text_color)
+
+            for yticklab in axes[i,j].get_yticklabels():
+                yticklab.set_color(text_color)
+
+            for xtick in axes[i,j].get_xticklines():
+                xtick.set_color(text_color)
+
+            for ytick in axes[i,j].get_yticklines():
+                ytick.set_color(text_color)
+
+
+
+def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True, dark=False):
     """
     Generates a simple plot of the pairs of array x and y in a plane.
 
@@ -68,7 +119,10 @@ def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_
     ax.grid()
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.set_title(title)
+    title = ax.set_title(title)
+
+    if dark:
+        _darkizer(fig, ax, title)
 
     if log_x:
         ax.set_xscale('log')
@@ -127,7 +181,8 @@ def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
 
 
 
-def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True):
+def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
+
 
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
@@ -137,12 +192,16 @@ def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.set_title(title)
+    title = ax.set_title(title)
+
+    if dark:
+        _darkizer(fig, ax, title)
 
     if show_plot:
         plt.show()
 
     return fig
+
 
 
 def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True):
