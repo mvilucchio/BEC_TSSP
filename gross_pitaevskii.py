@@ -4,23 +4,24 @@ import matplotlib.pyplot as plt
 
 EPS = 1e-12
 
-def get_freq(N):
-    arr = np.zeros((N,))
-    arr[0:int(N-np.floor(N/2))] = np.array(range(0,int(N-np.floor(N/2))))
-    arr[int(N-np.floor(N/2)):N] = np.array(range(0,int(np.floor(N/2)))) - np.floor(N/2)
-    return arr
+def _progress_bar(percent=0, width=30):
+    left = width * percent // 100
+    right = width - left
+    print('\r[', '#' * left, ' ' * right, ']',
+          f' {percent:.0f}%',
+          sep='', end='', flush=True)
 
 
 
-def get_mu(M, leng):
+def get_mu(M, len):
     arr = np.zeros((M,))
     arr[0:int(M-np.floor(M/2))] = np.array(range(0,int(M-np.floor(M/2))))
     arr[int(M-np.floor(M/2)):M] = np.array(range(0,int(np.floor(M/2)))) - np.floor(M/2)
-    return 2 * np.pi * arr/leng
+    return 2 * np.pi * arr/len
 
 
 
-def ti_tssp_1d_pbc(m, N, a, b, psi0, potential, dt, k, eps):
+def ti_tssp_1d_pbc(m, N, a, b, psi0, potential, dt, k, eps, verbose=True):
 
     grid_points = 2**m
 
@@ -37,6 +38,12 @@ def ti_tssp_1d_pbc(m, N, a, b, psi0, potential, dt, k, eps):
     for n in range(N-1):
         psi[n+1,:] = _ti_tssp_1d_pbc_step(psi[n,:], V)
 
+        if verbose:
+            _progress_bar(percent = int(n / (N - 2) * 100))
+
+    if verbose:
+        print('')
+
     return t, x, psi
 
 
@@ -49,70 +56,93 @@ def _ti_tssp_1d_pbc_step(psi, V):
 
 
 
-def ti_tssp_2d_pbc(M, N, q, a, b, psi0, potential, dt, beta, eps):
-    # 1/q is the fraction of the times we want to store. q must devide N
-
-    n = int(N/q)
-    x = np.linspace(a, b, M, endpoint=False)
-    y = np.linspace(a, b, M, endpoint=False)
-    X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
-    t = np.linspace(0, N*dt, n, endpoint=False)
-    f = get_freq(M)
-    Fx, Fy = np.meshgrid(f, f, sparse=False,indexing="ij")
-    F2 = Fx**2 + Fy**2
-
-    psi = np.empty((n, M, M), dtype=complex)
-    psi[0,:,:] = psi0(X, Y)
-
-    V = potential(X, Y)
-
-    for i in range(1,n):
-        psi[i,:] = _ti_tssp_2d_pbc_multi_step(psi[i-1,:], beta, eps, dt, q, b-a, V, F2)
-
-    return t, X, Y, psi
-
-
-# can be made faster even more
-def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, q, len, V, F2):
-
-    ps = psi * np.exp(-1j*(V + beta*np.abs(psi)**2)*dt/(2*eps))
-    ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * eps*dt * (4*np.pi**2/len**2) * F2))
-
-    for j in range(q-1):
-        ps = ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/eps)
-        ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j* eps*dt * (4*np.pi**2/len**2) * F2))
-
-    return ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/(2*eps))
-
-
-
-def td_tssp_2d_pbc(M, time_steps, saving_time, x_range, y_range, y_max, psi0, potential, dt, beta, eps):
+def ti_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0, potential, dt, beta, eps, verbose=True):
 
     if time_steps % saving_time != 0:
         raise ValueError('The parameter saving_time should divide time_steps.')
 
-    if x_range is not list or y_range is not list:
+    if not isinstance(x_range, list) or not isinstance(y_range, list):
         raise ValueError('The parameters x_range and y_range should be lists.')
 
     if len(x_range) != 2 or len(y_range) != 2:
-        raise ValueError('The parameters x_range and y_range should be of two elements.')
+        raise ValueError('The parameters x_range and y_range should be lists of two elements.')
 
     x_max = x_range[1]
     x_min = x_range[0]
     y_max = y_range[1]
     y_min = y_range[0]
 
-    x = np.linspace(x_min, x_max, M, endpoint=False)
-    y = np.linspace(y_min, y_max, M, endpoint=False)
+    n = int(time_steps/saving_time)
+    x = np.linspace(x_min, x_max, grid_points, endpoint=False)
+    y = np.linspace(y_min, y_max, grid_points, endpoint=False)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
-    t = dt * np.arange(time_steps / saving_time)
-    mux = get_mu(M, x_max - x_min)
-    muy = get_mu(M, y_min - y_max)
+    t = np.linspace(0, time_steps*dt, n, endpoint=False)
+
+    mux = get_mu(grid_points, x_max - x_min)
+    muy = get_mu(grid_points, y_min - y_max)
 
     Mux, Muy = np.meshgrid(mux, muy, sparse=False, indexing="ij")
     Mu2 = Mux**2 + Muy**2
 
-    psi = np.empty((time_steps/saving_time, M, M), dtype=complex)
+    psi = np.empty((n, grid_points, grid_points), dtype=complex)
+    psi[0,:,:] = psi0(X, Y)
+
+    V = potential(X, Y)
+
+    for i in range(1,n):
+        psi[i,:] = _ti_tssp_2d_pbc_multi_step(psi[i-1,:], beta, eps, dt, \
+                                              saving_time, x_max - x_min, V, Mu2)
+
+        if verbose:
+            _progress_bar(percent = int(i / (n - 1) * 100))
+
+    if verbose:
+        print('')
+
+    return t, X, Y, psi
+
+
+
+def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, saving_time, len, V, Mu2):
+
+    ps = psi * np.exp(-1j*(V + beta*np.abs(psi)**2)*dt/(2*eps))
+    ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * 0.5*eps*dt * Mu2))
+
+    for j in range(saving_time-1):
+        ps = ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/eps)
+        ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j* 0.5*eps*dt * Mu2))
+
+    return ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/(2*eps))
+
+
+
+def td_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0, potential, dt, beta, eps, verbose=True):
+
+    if time_steps % saving_time != 0:
+        raise ValueError('The parameter saving_time should divide time_steps.')
+
+    if not isinstance(x_range, list) or not isinstance(y_range, list):
+        raise ValueError('The parameters x_range and y_range should be lists.')
+
+    if len(x_range) != 2 or len(y_range) != 2:
+        raise ValueError('The parameters x_range and y_range should be lists of two elements.')
+
+    x_max = x_range[1]
+    x_min = x_range[0]
+    y_max = y_range[1]
+    y_min = y_range[0]
+
+    x = np.linspace(x_min, x_max, grid_points, endpoint=False)
+    y = np.linspace(y_min, y_max, grid_points, endpoint=False)
+    X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
+    t = dt * np.arange(time_steps / saving_time)
+    mux = get_mu(grid_points, x_max - x_min)
+    muy = get_mu(grid_points, y_min - y_max)
+
+    Mux, Muy = np.meshgrid(mux, muy, sparse=False, indexing="ij")
+    Mu2 = Mux**2 + Muy**2
+
+    psi = np.empty((time_steps/saving_time, grid_points, grid_points), dtype=complex)
     psi[0,:] = psi0(X, Y)
 
     V = potential(X, Y) / eps
@@ -124,8 +154,14 @@ def td_tssp_2d_pbc(M, time_steps, saving_time, x_range, y_range, y_max, psi0, po
     for i in range(1, time_steps):
         p = _td_tssp_pbc_2d_step(p, dt, beta/eps, eps, x[2] - x[1], y[2] - y[1], \
                                         V, expV, zero_pot, Mu2)
+        if verbose:
+            _progress_bar(percent = int(i / (n - 1) * 100))
+
         if i % saving_time == 0:
             psi[i / saving_time,:] = p
+
+    if verbose:
+        print('')
 
     return t, X, Y, psi
 
