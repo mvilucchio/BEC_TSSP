@@ -58,7 +58,7 @@ def ti_tssp_2d_pbc(M, N, q, a, b, psi0, potential, dt, beta, eps):
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
     t = np.linspace(0, N*dt, n, endpoint=False)
     f = get_freq(M)
-    Fx, Fy = np.meshgrid(freq,freq,sparse=False,indexing="ij")
+    Fx, Fy = np.meshgrid(f, f, sparse=False,indexing="ij")
     F2 = Fx**2 + Fy**2
 
     psi = np.empty((n, M, M), dtype=complex)
@@ -67,7 +67,7 @@ def ti_tssp_2d_pbc(M, N, q, a, b, psi0, potential, dt, beta, eps):
     V = potential(X, Y)
 
     for i in range(1,n):
-        psi[i,:] = _td_tssp_2d_pbc_multi_step(psi[i-1,:], beta, eps, dt, q, b-a, V, F2)
+        psi[i,:] = _ti_tssp_2d_pbc_multi_step(psi[i-1,:], beta, eps, dt, q, b-a, V, F2)
 
     return t, X, Y, psi
 
@@ -151,7 +151,7 @@ def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, V, expV, zero_pot, Mu2):
 
 def mean_value_2d(f, psi, x_range, y_range, M):
 
-    if x_range is not list or y_range is not list:
+    if not isinstance(x_range, list) or not isinstance(y_range, list):
         raise ValueError('The parameters x_range and y_range should be lists.')
 
     if len(x_range) != 2 or len(y_range) != 2:
@@ -162,13 +162,13 @@ def mean_value_2d(f, psi, x_range, y_range, M):
     y_max = y_range[1]
     y_min = y_range[0]
 
-    dA = (b-a)*(d-c)/(M**2)
+    dA = (x_max - x_min)*(y_max - y_min)/(M**2)
 
-    x = np.linspace(a, b, M)
-    y = np.linspace(a, b, M)
+    x = np.linspace(x_min, x_max, M)
+    y = np.linspace(y_min, y_max, M)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
 
-    if psi.shape == x.shape:
+    if psi.shape == X.shape:
         return np.sum(f(X,Y) * np.abs(psi)**2) * dA
     else:
         raise ValueError("Size of psi should match the size of the grid.")
@@ -189,7 +189,6 @@ def veloc_2d(psi, x_spacing, y_spacing):
     v = np.where(zero_abs, 0, gradient_2d(psi, x_spacing, y_spacing) * np.conj(psi) - \
                  psi * gradient_2d(np.conj(psi), x_spacing, y_spacing)) / (1j*np.abs(psi)**2)
     return v
-
 
 
 
