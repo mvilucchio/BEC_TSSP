@@ -4,7 +4,7 @@ from matplotlib import cm
 from mpl_toolkits import mplot3d
 import matplotlib.animation as animation
 
-
+# sizes
 fig_size = (10, 6)
 
 # colourmaps
@@ -21,6 +21,19 @@ grid_line_color = '#646464'
 
 # remember the squeeze attribute for subplots
 def _darkizer(fig, axes, title):
+    """
+    This function changes the theme of a figure (with axes) to a dark theme.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        The object Figure of which you want to change colour.
+    axes : matplotlib.axes.Axes
+        The axes of the fig.
+    title :
+        The title of the fig.
+
+    """
 
     fig.patch.set_facecolor(blk_background)
 
@@ -64,15 +77,22 @@ def _darkizer(fig, axes, title):
 
 def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True, dark=False):
     """
-    Generates a simple plot of the pairs of array x and y in a plane.
+    Generates a simple plot of the pairs of array x and y in a plane. x_list and y_list
+    can be one of the following cases:
+    - x_list and y_list are both single numpy arrays and this single set of data
+      will be plotted
+    - x_list is a single numpy array and y_list contains multiple numpy arrays
+      with the same dimension as x_list. In this case the the y_list sets of data
+      will be plotted with the same horizontal coordinates.
+    - x_list and y_list both correspond to multiple numpy arrays and all pari of
+      data will be plotted.
 
     Parameters
     ----------
-    x_list : numpy.ndarray
+    x_list : numpy.ndarray / list of numpy.ndarray
         Values on the horizontal axis.
-    y_list : numpy.ndarray or list
-        Values on the vertical axis. Every element of the list should be a
-        numpy.ndarray.
+    y_list : numpy.ndarray / list of numpy.ndarray
+        Values on the vertical axis.
     title : str, optional
         Title of the plot. The default is ''.
     x_label : str, optional
@@ -138,18 +158,18 @@ def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_
 
 
 
-def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
+def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
     """
     Generates a plane figure where the third varaible is represented as shades
     of color.
 
     Parameters
     ----------
-    x : numpy.ndarray
+    X : numpy.ndarray
         Matrix with values for the first axis on all the rows.
-    y : numpy.ndarray
+    Y : numpy.ndarray
         Matrix with values for the second axis on all the columns.
-    z : numpy.ndarray
+    Z : numpy.ndarray
         Matrix with values of the third axis.
     title : str, optional
         Title of the plot. The default is ''.
@@ -171,7 +191,7 @@ def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
 
-    pc = ax.pcolor(x, y, z, cmap=cm_pcolor)
+    pc = ax.pcolor(X, Y, Z, cmap=cm_pcolor)
     fig.colorbar(pc, shrink=0.5, aspect=5)
 
     ax.set_xlabel(x_label)
@@ -189,6 +209,34 @@ def pcolor_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
 
 
 def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
+    """
+    Generates a contour plot.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Description of parameter `X`.
+    Y : numpy.ndarray
+        Description of parameter `Y`.
+    Z : numpy.ndarray
+        Description of parameter `Z`.
+    title : str, optional
+        Description of parameter `title`. The default is ''.
+    x_label : str, optional
+        Description of parameter `x_label`. The default is r'$x$'.
+    y_label : str, optional
+        Description of parameter `y_label`. The default is r'$y$'.
+    show_plot : bool, optional
+        Description of parameter `show_plot`. The default is True.
+    dark : bool, optional
+        Description of parameter `dark`. The default is False.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure with the plot.
+
+    """
 
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
@@ -232,6 +280,8 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
         Name of the third axis. The default is r'$z$'.
     show_plot: bool, optional
         Flag for printing the figure with plt.show(). The default value is True.
+    dark : bool, optional
+        Flag for changing the graph color to a dark theme. The default is False.
 
     Returns
     -------
@@ -266,26 +316,27 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
 
     Parameters
     ----------
-    X : ndarray
+    X : numpy.ndarray
         Matrix with values for the first axis on all the rows. The size should
         be the same as Y.
-    Y : ndarry
+    Y : numpy.ndarry
         Matrix with values for the second axis on all the columns. The size should
         be the same as X.
-    Z : ndarray
+    Z : numpy.ndarray
         Tensor containing the height of each point and each time. The first
         dimension is for the time step and Z[i,:] should have the same dimension
         as X and Y.
     delay : int
-        Description of parameter `delay`. The default is 200.
+        Time delay in milliseconds between one frame and the next one.
+        The default is 200.
     title : str
-        Description of parameter `title`. The default is ''.
+        Title of the plot. The default is ''.
     x_label : str
-        Description of parameter `x_label`. The default is r'$x$'.
+        Name of the first axis. The default is r'$x$'.
     y_label : str
-        Description of parameter `y_label`. The default is r'$y$'.
+        Name of the second axis. The default is r'$y$'.
     z_label : str
-        Description of parameter `z_label`. The default is r'$z$'.
+        Name of the third axis. The default is r'$z$'.
     show_plot: bool, optional
         Flag for printing the figure with plt.show(). The default value is True.
 
@@ -320,32 +371,70 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
 
 
 
-def quiver_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='', show_plot=True, dark=False):
+def quiver_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='', show_plot=True, dark=False):
+    """
+    Generates a plot of some vector fields.
 
-    if isinstance(z, list):
-        if len(z) != 2:
+    Parameters
+    ----------
+    X : type
+        Matrix with values for the first axis on all the rows.
+    Y : type
+        Matrix with values for the second axis on all the columns.
+    Z : type
+        Either a matrix with 3 dimension and the last two dimensions like the
+        dimensions of X and Y or a list of two matricies with the same size as
+        X and Y.
+    title : str, optional
+        Title of the plot. The default is ''.
+    x_label : str, optional
+        The name on the first axis. The default is r'$x$'.
+    y_label : str, optional
+        Name on the second axis. The default is r'$y$'.
+    mes_unit : str, optional
+        Units of measure of the vectors shown. The default is ''.
+    show_plot : bool, optional
+        Flag for printing the figure with plt.show(). The default is True.
+    dark : bool, optional
+        Flag for changing the graph color to a dark theme. The default is False.
+
+    Raises
+    ------
+    ValueError
+        If the size of either X, Y or Z don't match.
+    TypeError
+        If the Z parameter is neither a list of numpy.ndarray or a numpy.ndarray
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure with the plot.
+
+    """
+
+    if isinstance(Z, list):
+        if len(Z) != 2:
             raise ValueError("The argument z should be a list of two elements.")
         else:
-            q_x = z[0]
-            q_y = z[1]
-    elif isinstance(z, np.ndarray):
-        if len(z.shape) != 3 or z.shape[0] < 2:
+            q_x = Z[0]
+            q_y = Z[1]
+    elif isinstance(Z, np.ndarray):
+        if len(Z.shape) != 3 or Z.shape[0] < 2:
             raise ValueError("The argument z should be a numpy array of dimension 3 with at least 2 values on the first axis.")
         else:
-            q_x = z[0,:]
-            q_y = z[1,:]
+            q_x = Z[0,:]
+            q_y = Z[1,:]
     else:
         raise TypeError("The argument z should be a list of numpy.ndarray or an instance of numpy.ndarray.")
 
-    if q_x.shape != x.shape or q_x.shape != y.shape or q_y.shape != x.shape or q_y.shape != y.shape:
-        raise ValueError("The shape of x, y and the two elements in z must coincide.")
+    if q_x.shape != X.shape or q_x.shape != Y.shape or q_y.shape != X.shape or q_y.shape != Y.shape:
+        raise ValueError("The shape of X, Y and the two elements in Z must coincide.")
 
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
 
-    Q = ax.quiver(x, y, q_x, q_y, pivot='tail')
-    ax.quiverkey(Q, 0.9, 0.9, 1, '1' + mes_unit, labelpos='E',
-                   coordinates='figure')
+    Q = ax.quiver(X, Y, q_x, q_y, pivot='tail')
+    ax.quiverkey(Q, 0.9, 0.9, 1, '1' + mes_unit, labelpos='E', coordinates='figure')
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
