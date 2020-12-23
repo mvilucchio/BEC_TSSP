@@ -18,7 +18,6 @@ text_color = '#D0D0D0'
 grid_line_color = '#646464'
 
 
-
 # remember the squeeze attribute for subplots
 def _darkizer(fig, axes, title):
     """
@@ -208,7 +207,7 @@ def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
 
 
 
-def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
+def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
     """
     Generates a contour plot.
 
@@ -220,6 +219,8 @@ def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot
         Description of parameter `Y`.
     Z : numpy.ndarray
         Description of parameter `Z`.
+    levels : int or list of int, optional
+        `levels` param in function matplotlib.pyplot.contour. The default is 25.
     title : str, optional
         Description of parameter `title`. The default is ''.
     x_label : str, optional
@@ -241,7 +242,7 @@ def contour_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
 
-    cp = ax.contour(X, Y, Z, cmap=cm_contour)
+    cp = ax.contour(X, Y, Z, levels, cmap=cm_contour)
     ax.clabel(cp, inline=1, fontsize=10)
 
     ax.set_xlabel(x_label)
