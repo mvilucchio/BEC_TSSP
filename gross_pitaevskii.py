@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import fft
 import matplotlib.pyplot as plt
+from inspect import signature
 
 EPS = 1e-12
 
@@ -67,12 +68,33 @@ def ti_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
     if len(x_range) != 2 or len(y_range) != 2:
         raise ValueError('The parameters x_range and y_range should be lists of two elements.')
 
+    param_potential = signature(potential).parameters
+
+    if len(param_potential) > 3 or len(param_potential) < 2:
+        raise ValueError('The function potential should have two paramethers (x, y) or three paramethers (x, y, t).')
+    elif len(param_potential) == 3:
+        flag_pot_time = True
+    else:
+        flag_pot_time = False
+
+    if isinstance(psi0, np.ndarray):
+        if psi0.shape != (grid_points, grid_points):
+            raise ValueError('The size of psi0 should be (grid_points, grid_points), in this case ({},{}).'.format(grid_points, grid_points))
+        flag_psi0_ndarray = True
+    elif callable(psi0):
+        param_psi0 = signature(psi0).parameters
+        if len(param_psi0) != 2:
+            raise ValueError('The funcion psi0 should have two paramethers (x, y).')
+        flag_psi0_ndarray = False
+    else:
+        raise TypeError('The paramether psi0 should be either a function or a numpy.ndarray instance.')
+
     x_max = x_range[1]
     x_min = x_range[0]
     y_max = y_range[1]
     y_min = y_range[0]
 
-    n = int(time_steps/saving_time)
+    n = time_steps // saving_time
     x = np.linspace(x_min, x_max, grid_points, endpoint=False)
     y = np.linspace(y_min, y_max, grid_points, endpoint=False)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
@@ -85,16 +107,28 @@ def ti_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
     Mu2 = Mux**2 + Muy**2
 
     psi = np.empty((n, grid_points, grid_points), dtype=complex)
-    psi[0,:,:] = psi0(X, Y)
+    if flag_psi0_ndarray:
+        psi[0,:,:] = psi0
+    else:
+        psi[0,:,:] = psi0(X, Y)
 
-    V = potential(X, Y)
+    if flag_pot_time:
+        for i in range(1,n):
+            psi[i,:] = _ti_tssp_2d_pbc_multi_step_time(psi[i-1,:], beta, eps, dt, \
+                                                  saving_time, potential, X, Y, t[i], Mu2)
 
-    for i in range(1,n):
-        psi[i,:] = _ti_tssp_2d_pbc_multi_step(psi[i-1,:], beta, eps, dt, \
-                                              saving_time, x_max - x_min, V, Mu2)
+            if verbose:
+                _progress_bar(percent = int(i / (n - 1) * 100))
 
-        if verbose:
-            _progress_bar(percent = int(i / (n - 1) * 100))
+    else:
+        V = potential(X, Y)
+
+        for i in range(1,n):
+            psi[i,:] = _ti_tssp_2d_pbc_multi_step(psi[i-1,:], beta, eps, dt, \
+                                                  saving_time, V, Mu2)
+
+            if verbose:
+                _progress_bar(percent = int(i / (n - 1) * 100))
 
     if verbose:
         print('')
@@ -103,16 +137,29 @@ def ti_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
 
 
 
-def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, saving_time, len, V, Mu2):
+def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, saving_time, V, Mu2):
 
     ps = psi * np.exp(-1j*(V + beta*np.abs(psi)**2)*dt/(2*eps))
     ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * 0.5*eps*dt * Mu2))
 
     for j in range(saving_time-1):
         ps = ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/eps)
-        ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j* 0.5*eps*dt * Mu2))
+        ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * 0.5*eps*dt * Mu2))
 
     return ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/(2*eps))
+
+
+
+def _ti_tssp_2d_pbc_multi_step_time(psi, beta, eps, dt, saving_time, potential, X, Y, t, Mu2):
+
+    ps = psi * np.exp(-1j*(potential(X, Y, t) + beta*np.abs(psi)**2)*dt/(2*eps))
+    ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * 0.5*eps*dt * Mu2))
+
+    for j in range(saving_time-1):
+        ps = ps * np.exp(-1j*(potential(X, Y, t + dt*j) + beta*np.abs(ps)**2)*dt/eps)
+        ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * 0.5*eps*dt * Mu2))
+
+    return ps * np.exp(-1j*(potential(X, Y, t + dt*j) + beta*np.abs(ps)**2)*dt/(2*eps))
 
 
 
@@ -132,6 +179,7 @@ def td_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
     y_max = y_range[1]
     y_min = y_range[0]
 
+    n = time_steps // saving_time
     x = np.linspace(x_min, x_max, grid_points, endpoint=False)
     y = np.linspace(y_min, y_max, grid_points, endpoint=False)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
@@ -142,7 +190,7 @@ def td_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
     Mux, Muy = np.meshgrid(mux, muy, sparse=False, indexing="ij")
     Mu2 = Mux**2 + Muy**2
 
-    psi = np.empty((time_steps/saving_time, grid_points, grid_points), dtype=complex)
+    psi = np.empty((n, grid_points, grid_points), dtype=complex)
     psi[0,:] = psi0(X, Y)
 
     V = potential(X, Y) / eps
@@ -151,17 +199,22 @@ def td_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
 
     p = psi[0,:]
 
+
+    #old_dict = np.seterr(divide='ignore', invalid='ignore')
+
     for i in range(1, time_steps):
         p = _td_tssp_pbc_2d_step(p, dt, beta/eps, eps, x[2] - x[1], y[2] - y[1], \
                                         V, expV, zero_pot, Mu2)
         if verbose:
-            _progress_bar(percent = int(i / (n - 1) * 100))
+            _progress_bar(percent = int(i / (time_steps - 1) * 100))
 
         if i % saving_time == 0:
-            psi[i / saving_time,:] = p
+            psi[i // saving_time,:] = p
 
     if verbose:
         print('')
+
+    #_ = np.seterr(old_dict)
 
     return t, X, Y, psi
 
@@ -236,7 +289,7 @@ def energy_gpe(psi, V, beta, eps, x_spacing, y_spacing):
 
 
 
-def mu_gpe(psi, V, beta, x_spacing, y_spacing):
+def mu_gpe(psi, V, beta, eps, x_spacing, y_spacing):
     a = np.abs(psi)
     g = gradient_2d(psi, x_spacing, y_spacing)
     g2 = np.abs(g[0,:])**2 + np.abs(g[1,:])**2
