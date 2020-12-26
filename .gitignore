@@ -1,6 +1,7 @@
 # Testing file #
 test*.py
 test*.ipynb
+test_imgs*
 
 # OS generated files #
 ######################
