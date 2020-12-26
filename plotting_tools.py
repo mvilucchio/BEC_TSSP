@@ -5,7 +5,7 @@ from mpl_toolkits import mplot3d
 import matplotlib.animation as animation
 
 # sizes
-fig_size = (10, 6)
+fig_size = (6, 6)
 
 # colourmaps
 cm_surface = cm.get_cmap('coolwarm')
@@ -157,7 +157,7 @@ def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_
 
 
 
-def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
+def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, color_bar=True, dark=False):
     """
     Generates a plane figure where the third varaible is represented as shades
     of color.
@@ -191,7 +191,8 @@ def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
     ax = fig.gca()
 
     pc = ax.pcolor(X, Y, Z, cmap=cm_pcolor)
-    fig.colorbar(pc, shrink=0.5, aspect=5)
+    if color_bar:
+        fig.colorbar(pc, shrink=0.5, aspect=5)
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
@@ -263,7 +264,7 @@ def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$'
 
 
 
-def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True, dark=False):
+def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True, color_bar=True, dark=False):
     """
     Generates a 3D plot.
 
@@ -298,7 +299,8 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
     ax = fig.gca(projection='3d')
 
     s = ax.plot_surface(x, y, z, cmap=cm_surface, linewidth=0, antialiased=False)
-    fig.colorbar(s, shrink=0.5, aspect=5)
+    if color_bar:
+        fig.colorbar(s, shrink=0.5, aspect=5)
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
