@@ -207,7 +207,7 @@ def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
 
 
 
-def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
+def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$', values=False, show_plot=True, dark=False):
     """
     Generates a contour plot.
 
@@ -227,6 +227,9 @@ def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$'
         Description of parameter `x_label`. The default is r'$x$'.
     y_label : str, optional
         Description of parameter `y_label`. The default is r'$y$'.
+    values : bool, optional
+        Flag for having the plot contain the value of the contour lines. The
+        default is False.
     show_plot : bool, optional
         Description of parameter `show_plot`. The default is True.
     dark : bool, optional
@@ -243,7 +246,8 @@ def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$'
     ax = fig.gca()
 
     cp = ax.contour(X, Y, Z, levels, cmap=cm_contour)
-    ax.clabel(cp, inline=1, fontsize=10)
+    if values:
+        ax.clabel(cp, inline=1, fontsize=10)
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
