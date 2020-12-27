@@ -317,6 +317,12 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
 
 
 
+def _update_surface(frame_number, X, Y, Z, ax, plot):
+    plot[0].remove()
+    plot[0] = ax.plot_surface(X, Y, Z[frame_number, :, :], cmap=cm_surface, linewidth=0, antialiased=False)
+
+
+
 def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True):
     """
     Animates a sequence of 3D data.
@@ -362,14 +368,10 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
     ax.set_zlabel(z_label, rotation=90)
     ax.set_title(title)
 
-    frames = []
+    ax.set_zlim(Z.min(), Z.max())
 
-    for t in range(Z.shape[0]):
-        s = ax.plot_surface(X, Y, Z[t,:], cmap=cm_surface, linewidth=0, antialiased=False)
-        frames.append([s])
-
-    anim = animation.ArtistAnimation(fig, frames, interval=delay, \
-                                     repeat_delay=2*delay, repeat=True, blit=False)
+    plot = [ax.plot_surface(X, Y, Z[0, :, :], cmap=cm_surface, linewidth=0, antialiased=False)]
+    anim =  animation.FuncAnimation(fig, _update_surface, Z.shape[0], fargs=(X, Y, Z, ax, plot), interval=delay, repeat_delay=2*delay, repeat=True, blit=False)
 
     if show_plot:
         plt.show()
