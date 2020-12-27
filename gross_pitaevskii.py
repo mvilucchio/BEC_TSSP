@@ -4,13 +4,12 @@ import matplotlib.pyplot as plt
 from inspect import signature
 
 EPS = 1e-12
+PRINT_EACH = 100
 
 def _progress_bar(percent=0, width=30):
     left = width * percent // 100
     right = width - left
-    print('\r[', '#' * left, ' ' * right, ']',
-          f' {percent:.0f}%',
-          sep='', end='', flush=True)
+    print('\r[', '#' * left, ' ' * right, ']', f' {percent:.0f}%', sep='', end='', flush=True)
 
 
 
@@ -22,25 +21,38 @@ def get_mu(M, len):
 
 
 
-def ti_tssp_1d_pbc(m, N, a, b, psi0, potential, dt, k, eps, verbose=True):
+def ti_tssp_1d_pbc(grid_points, time_steps, saving_time, x_range, psi0, potential, dt, beta, eps, verbose=True):
 
-    grid_points = 2**m
+    if time_steps % saving_time != 0:
+        raise ValueError('The parameter saving_time should divide time_steps.')
 
-    psi = np.empty((N, grid_points), dtype=complex)
+    if not isinstance(x_range, list):
+        raise ValueError('The parameter x_range should be a list.')
 
-    x = np.linspace(a, b, grid_points, endpoint=False)
-    t = np.linspace(0, N*dt, N, endpoint=False)
+    if len(x_range) != 2:
+        raise ValueError('The parameter x_range should be list a of two elements.')
+
+    n = int(time_steps / saving_time)
+
+    x_max = x_range[1]
+    x_min = x_range[0]
+
+    psi = np.empty((n, grid_points), dtype=complex)
+
+    x = np.linspace(x_min, x_max, grid_points, endpoint=False)
+    t = np.linspace(0, time_steps*dt, n, endpoint=False)
     mu = 2*np.pi * np.arange(grid_points, dtype=float)
+    mu2 = mu**2
 
     V = potential(x)
 
     psi[0,:] = psi0(x)
 
-    for n in range(N-1):
-        psi[n+1,:] = _ti_tssp_1d_pbc_step(psi[n,:], V)
+    for i in range(1,n):
+        psi[i,:] = _ti_tssp_1d_pbc_multi_step(psi[i-1,:], beta, eps, dt, saving_time, V, mu2)
 
-        if verbose:
-            _progress_bar(percent = int(n / (N - 2) * 100))
+        if verbose and (i % PRINT_EACH == 0 or i == n-1):
+            _progress_bar(percent = int(i / (n - 2) * 100))
 
     if verbose:
         print('')
@@ -49,11 +61,16 @@ def ti_tssp_1d_pbc(m, N, a, b, psi0, potential, dt, k, eps, verbose=True):
 
 
 
-def _ti_tssp_1d_pbc_step(psi, V):
+def _ti_tssp_1d_pbc_multi_step(psi, beta, eps, dt, saving_time, V, mu2):
 
-    p1 = psi * np.exp(-1j*(V + k * np.abs(psi)**2) * dt/(2*eps))
-    p2 = fft.ifft(np.exp(-1j*eps*dt*mu**2/2) * fft.fft(p1))
-    return p2 * np.exp(-1j*(V + k * np.abs(p2)**2)*dt/(2*eps))
+    ps = psi * np.exp(-1j * (V + beta * np.abs(psi)**2) * dt/(2*eps))
+    ps = fft.ifft(np.exp(-1j * 0.5*eps*dt * mu2) * fft.fft(ps))
+
+    for j in range(saving_time-1):
+        ps = psi * np.exp(-1j * (V + beta * np.abs(psi)**2) * dt/(2*eps))
+        ps = fft.ifft(np.exp(-1j * 0.5*eps*dt * mu2) * fft.fft(ps))
+
+    return ps * np.exp(-1j * (V + beta * np.abs(ps)**2) * dt/(2*eps))
 
 
 
@@ -199,22 +216,19 @@ def td_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
 
     p = psi[0,:]
 
+    # done to prevent numpy Warning taken care with the where function
+    with np.errstate(divide='ignore', invalid='ignore'):
+        for i in range(1, time_steps):
+            p = _td_tssp_pbc_2d_step(p, dt, beta/eps, eps, x[2] - x[1], y[2] - y[1], V, expV, zero_pot, Mu2)
 
-    #old_dict = np.seterr(divide='ignore', invalid='ignore')
+            if verbose and (i % PRINT_EACH == 0 or i == time_steps-1):
+                _progress_bar(percent = int(i / (time_steps - 1) * 100))
 
-    for i in range(1, time_steps):
-        p = _td_tssp_pbc_2d_step(p, dt, beta/eps, eps, x[2] - x[1], y[2] - y[1], \
-                                        V, expV, zero_pot, Mu2)
-        if verbose:
-            _progress_bar(percent = int(i / (time_steps - 1) * 100))
-
-        if i % saving_time == 0:
-            psi[i // saving_time,:] = p
+            if i % saving_time == 0:
+                psi[i // saving_time,:] = p
 
     if verbose:
         print('')
-
-    #_ = np.seterr(old_dict)
 
     return t, X, Y, psi
 
