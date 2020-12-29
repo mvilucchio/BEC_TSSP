@@ -44,34 +44,33 @@ def _darkizer(fig, axes, title):
 
     for i in range(axes.shape[0]):
         for j in range(axes.shape[1]):
-            axes[i,j].set_facecolor(blk_background)
+            axes[i, j].set_facecolor(blk_background)
 
-            axes[i,j].xaxis.label.set_color(text_color)
-            axes[i,j].yaxis.label.set_color(text_color)
+            axes[i, j].xaxis.label.set_color(text_color)
+            axes[i, j].yaxis.label.set_color(text_color)
 
-            axes[i,j].title.set_color(text_color)
+            axes[i, j].title.set_color(text_color)
 
-            for _, spine in axes[i,j].spines.items():
+            for _, spine in axes[i, j].spines.items():
                 spine.set_color(text_color)
 
-            for xline in axes[i,j].get_xgridlines():
+            for xline in axes[i, j].get_xgridlines():
                 xline.set_color(grid_line_color)
 
-            for yline in axes[i,j].get_ygridlines():
+            for yline in axes[i, j].get_ygridlines():
                 yline.set_color(grid_line_color)
 
-            for xticklab in axes[i,j].get_xticklabels():
+            for xticklab in axes[i, j].get_xticklabels():
                 xticklab.set_color(text_color)
 
-            for yticklab in axes[i,j].get_yticklabels():
+            for yticklab in axes[i, j].get_yticklabels():
                 yticklab.set_color(text_color)
 
-            for xtick in axes[i,j].get_xticklines():
+            for xtick in axes[i, j].get_xticklines():
                 xtick.set_color(text_color)
 
-            for ytick in axes[i,j].get_yticklines():
+            for ytick in axes[i, j].get_yticklines():
                 ytick.set_color(text_color)
-
 
 
 def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True, dark=False):
@@ -129,7 +128,8 @@ def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_
         x_list = x_list * len(y_list)
 
     if len(x_list) != len(y_list):
-        raise ValueError('The number of elements for x_list and y_list should be the same or 1 for x_list.')
+        raise ValueError(
+            'The number of elements for x_list and y_list should be the same or 1 for x_list.')
 
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
@@ -154,7 +154,6 @@ def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_
         plt.show()
 
     return fig
-
 
 
 def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, color_bar=True, dark=False):
@@ -205,7 +204,6 @@ def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
         plt.show()
 
     return fig
-
 
 
 def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$', values=False, show_plot=True, dark=False):
@@ -263,7 +261,6 @@ def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$'
     return fig
 
 
-
 def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True, color_bar=True, dark=False):
     """
     Generates a 3D plot.
@@ -316,11 +313,10 @@ def surface_plotter(x, y, z, title='', x_label=r'$x$', y_label=r'$y$', z_label=r
     return fig
 
 
-
 def _update_surface(frame_number, X, Y, Z, ax, plot):
     plot[0].remove()
-    plot[0] = ax.plot_surface(X, Y, Z[frame_number, :, :], cmap=cm_surface, linewidth=0, antialiased=False)
-
+    plot[0] = ax.plot_surface(X, Y, Z[frame_number, :, :], cmap=cm_surface,
+                              linewidth=0, antialiased=False)
 
 
 def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$', z_label=r'$z$', show_plot=True):
@@ -371,7 +367,8 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
     ax.set_zlim(Z.min(), Z.max())
 
     plot = [ax.plot_surface(X, Y, Z[0, :, :], cmap=cm_surface, linewidth=0, antialiased=False)]
-    anim =  animation.FuncAnimation(fig, _update_surface, Z.shape[0], fargs=(X, Y, Z, ax, plot), interval=delay, repeat_delay=2*delay, repeat=True, blit=False)
+    anim = animation.FuncAnimation(fig, _update_surface, Z.shape[0], fargs=(
+        X, Y, Z, ax, plot), interval=delay, repeat_delay=2*delay, repeat=True, blit=False)
 
     if show_plot:
         plt.show()
@@ -424,23 +421,22 @@ def _crop_array_idxs(array, val_min, val_max):
     return idx_min, idx_max
 
 
-
 def quiver_plotter(X, Y, Z, plot_range=None, mes_unit='', title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
     """
     Generates a plot of some vector fields.
 
     Parameters
     ----------
-    X : type
+    X : numpy.ndarray
         Matrix with values for the first axis on all the rows.
-    Y : type
+    Y : numpy.ndarray
         Matrix with values for the second axis on all the columns.
-    Z : type
+    Z : numpy.ndarray or list of numpy.ndarray
         Either a matrix with 3 dimension and the last two dimensions like the
         dimensions of X and Y or a list of two matricies with the same size as
         X and Y.
     plot_range : list of floats, optional
-        The defualt is None.
+        List with the range for the plot. The defualt is None.
     mes_unit : str, optional
         Units of measure of the vectors shown. The default is ''.
     title : str, optional
@@ -476,12 +472,14 @@ def quiver_plotter(X, Y, Z, plot_range=None, mes_unit='', title='', x_label=r'$x
             q_y = Z[1]
     elif isinstance(Z, np.ndarray):
         if len(Z.shape) != 3 or Z.shape[0] < 2:
-            raise ValueError("The argument z should be a numpy array of dimension 3 with at least 2 values on the first axis.")
+            raise ValueError(
+                "The argument z should be a numpy array of dimension 3 with at least 2 values on the first axis.")
         else:
-            q_x = Z[0,:]
-            q_y = Z[1,:]
+            q_x = Z[0, :]
+            q_y = Z[1, :]
     else:
-        raise TypeError("The argument z should be a list of numpy.ndarray or an instance of numpy.ndarray.")
+        raise TypeError(
+            "The argument z should be a list of numpy.ndarray or an instance of numpy.ndarray.")
 
     range_reduction = True
     if plot_range == None:
@@ -489,7 +487,8 @@ def quiver_plotter(X, Y, Z, plot_range=None, mes_unit='', title='', x_label=r'$x
     elif not isinstance(plot_range, list):
         raise TypeError('The argument should be a list of floats.')
     elif len(plot_range) != 4:
-        raise ValueError('The number of elements in plot_range should be 4, here it is {}'.format(len(plot_range)))
+        raise ValueError(
+            'The number of elements in plot_range should be 4, here it is {}'.format(len(plot_range)))
 
     if q_x.shape != X.shape or q_x.shape != Y.shape or q_y.shape != X.shape or q_y.shape != Y.shape:
         raise ValueError("The shape of X, Y and the two elements in Z must coincide.")
@@ -500,13 +499,13 @@ def quiver_plotter(X, Y, Z, plot_range=None, mes_unit='', title='', x_label=r'$x
         y_max = plot_range[3]
         y_min = plot_range[2]
 
-        idx_x_min, idx_x_max = _crop_array_idxs(X[:,0], x_min, x_max)
-        idx_y_min, idx_y_max = _crop_array_idxs(Y[0,:], y_min, y_max)
+        idx_x_min, idx_x_max = _crop_array_idxs(X[:, 0], x_min, x_max)
+        idx_y_min, idx_y_max = _crop_array_idxs(Y[0, :], y_min, y_max)
 
-        X = X[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
-        Y = Y[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
-        q_x = q_x[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
-        q_y = q_y[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
+        X = X[idx_x_min: idx_x_max + 1, idx_y_min: idx_y_max + 1]
+        Y = Y[idx_x_min: idx_x_max + 1, idx_y_min: idx_y_max + 1]
+        q_x = q_x[idx_x_min: idx_x_max + 1, idx_y_min: idx_y_max + 1]
+        q_y = q_y[idx_x_min: idx_x_max + 1, idx_y_min: idx_y_max + 1]
 
     # plotting of the function
     fig = plt.figure(figsize=fig_size)
