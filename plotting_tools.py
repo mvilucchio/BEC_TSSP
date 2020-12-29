@@ -379,8 +379,53 @@ def surface_animate(X, Y, Z, delay=200, title='', x_label=r'$x$', y_label=r'$y$'
     return anim
 
 
+def _crop_array_idxs(array, val_min, val_max):
+    """
+    Given an increaslingly ordered array and two values (val_min and val_max) it
+    returns the indicies of the smallest element still greater or equal to val_min
+    and the greater element still smaller or equal to val_max.
 
-def quiver_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='', show_plot=True, dark=False):
+    Parameters
+    ----------
+    array : list or numpy.ndarray
+        Sorted array.
+    val_min : float
+        Minimal value of the elements.
+    val_max : float
+        Maximal value of the elements.
+
+    Returns
+    -------
+    idx_min, idx_max
+        Indicies within which there are elements smaller than val_max and bigger
+        then val_min.
+
+    """
+
+    flag_min = True
+    flag_max = True
+    l = len(array)
+
+    for i, elem in enumerate(array):
+        if flag_min:
+            if elem >= val_min:
+                idx_min = i
+                flag_min = False
+        if flag_max:
+            if array[l - 1 - i] <= val_max:
+                idx_max = l - 1 - i
+                flag_max = False
+        if not flag_max and not flag_min:
+            break
+
+    if flag_min or flag_max:
+        raise RuntimeError('Indeces not found.')
+
+    return idx_min, idx_max
+
+
+
+def quiver_plotter(X, Y, Z, plot_range=None, mes_unit='', title='', x_label=r'$x$', y_label=r'$y$', show_plot=True, dark=False):
     """
     Generates a plot of some vector fields.
 
@@ -394,14 +439,16 @@ def quiver_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='
         Either a matrix with 3 dimension and the last two dimensions like the
         dimensions of X and Y or a list of two matricies with the same size as
         X and Y.
+    plot_range : list of floats, optional
+        The defualt is None.
+    mes_unit : str, optional
+        Units of measure of the vectors shown. The default is ''.
     title : str, optional
         Title of the plot. The default is ''.
     x_label : str, optional
         The name on the first axis. The default is r'$x$'.
     y_label : str, optional
         Name on the second axis. The default is r'$y$'.
-    mes_unit : str, optional
-        Units of measure of the vectors shown. The default is ''.
     show_plot : bool, optional
         Flag for printing the figure with plt.show(). The default is True.
     dark : bool, optional
@@ -436,14 +483,40 @@ def quiver_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', mes_unit='
     else:
         raise TypeError("The argument z should be a list of numpy.ndarray or an instance of numpy.ndarray.")
 
+    range_reduction = True
+    if plot_range == None:
+        range_reduction = False
+    elif not isinstance(plot_range, list):
+        raise TypeError('The argument should be a list of floats.')
+    elif len(plot_range) != 4:
+        raise ValueError('The number of elements in plot_range should be 4, here it is {}'.format(len(plot_range)))
+
     if q_x.shape != X.shape or q_x.shape != Y.shape or q_y.shape != X.shape or q_y.shape != Y.shape:
         raise ValueError("The shape of X, Y and the two elements in Z must coincide.")
 
+    if range_reduction:
+        x_max = plot_range[1]
+        x_min = plot_range[0]
+        y_max = plot_range[3]
+        y_min = plot_range[2]
+
+        idx_x_min, idx_x_max = _crop_array_idxs(X[:,0], x_min, x_max)
+        idx_y_min, idx_y_max = _crop_array_idxs(Y[0,:], y_min, y_max)
+
+        X = X[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
+        Y = Y[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
+        q_x = q_x[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
+        q_y = q_y[idx_x_min : idx_x_max + 1, idx_y_min : idx_y_max + 1]
+
+    # plotting of the function
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
 
     Q = ax.quiver(X, Y, q_x, q_y, pivot='tail')
     ax.quiverkey(Q, 0.9, 0.9, 1, '1' + mes_unit, labelpos='E', coordinates='figure')
+
+    if range_reduction:
+        ax.axis(plot_range)
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
