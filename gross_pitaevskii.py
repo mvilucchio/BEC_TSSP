@@ -247,6 +247,33 @@ def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, V, expV, zero_pot, Mu2):
 
 
 def mean_value_2d(f, psi, x_range, y_range, M):
+    """
+    Short summary.
+
+    Parameters
+    ----------
+    f : type
+        Description of parameter `f`.
+    psi : type
+        Description of parameter `psi`.
+    x_range : type
+        Description of parameter `x_range`.
+    y_range : type
+        Description of parameter `y_range`.
+    M : type
+        Description of parameter `M`.
+
+    Raises
+    ------
+    ExceptionName
+        Why the exception is raised.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
 
     if not isinstance(x_range, list) or not isinstance(y_range, list):
         raise ValueError('The parameters x_range and y_range should be lists.')
@@ -272,6 +299,24 @@ def mean_value_2d(f, psi, x_range, y_range, M):
 
 
 def gradient_2d(psi, x_spacing, y_spacing):
+    """
+    Short summary.
+
+    Parameters
+    ----------
+    psi : type
+        Description of parameter `psi`.
+    x_spacing : type
+        Description of parameter `x_spacing`.
+    y_spacing : type
+        Description of parameter `y_spacing`.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
     g = np.empty((2, psi.shape[0], psi.shape[1]), dtype=psi.dtype)
     g[0, :] = (psi - np.roll(psi, 1, axis=0))/x_spacing
     g[1, :] = (psi - np.roll(psi, 1, axis=1))/y_spacing
@@ -279,6 +324,24 @@ def gradient_2d(psi, x_spacing, y_spacing):
 
 
 def veloc_2d(psi, x_spacing, y_spacing):
+    """
+    Short summary.
+
+    Parameters
+    ----------
+    psi : type
+        Description of parameter `psi`.
+    x_spacing : type
+        Description of parameter `x_spacing`.
+    y_spacing : type
+        Description of parameter `y_spacing`.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
     v = np.empty((2, psi.shape[0], psi.shape[1]), dtype=psi.dtype)
     zero_abs = (np.abs(psi)**2 < -5).astype(int)
     v = np.where(zero_abs, 0, gradient_2d(psi, x_spacing, y_spacing) * np.conj(psi) -
@@ -287,6 +350,33 @@ def veloc_2d(psi, x_spacing, y_spacing):
 
 
 def energy_gpe(psi, V, beta, eps, x_spacing, y_spacing):
+    """
+    Given the paramether of the Gross-Pitaevskii equation it computes the
+    energy for the given wavefunction.
+
+    Parameters
+    ----------
+    psi : numpy.ndarray
+        Numpy matrix with the values of the wavefunction on the grid. This should
+        have the same size as V.
+    V : numpy.ndarray
+        Values of the potential on the same grid as psi. This should have the same
+        size as psi.
+    beta : float
+        Non linearity paramether of the Gross-Pitaevskii equation.
+    eps : float
+        Value of the time separation step.
+    x_spacing : float
+        Distance between two points in the x axis.
+    y_spacing : float
+        Distance between two points in the y axis.
+
+    Returns
+    -------
+    type
+        Computed value of the energy.
+
+    """
     a = np.abs(psi)
     g = gradient_2d(psi, x_spacing, y_spacing)
     g2 = g[0, :]**2 + g[1, :]**2
@@ -294,6 +384,33 @@ def energy_gpe(psi, V, beta, eps, x_spacing, y_spacing):
 
 
 def mu_gpe(psi, V, beta, eps, x_spacing, y_spacing):
+    """
+    Given the paramether of the Gross-Pitaevskii equation it computes the
+    chemical potential for the given wavefunction.
+
+    Parameters
+    ----------
+    psi : numpy.ndarray
+        Numpy matrix with the values of the wavefunction on the grid. This should
+        have the same size as V.
+    V : numpy.ndarray
+        Values of the potential on the same grid as psi. This should have the same
+        size as psi.
+    beta : float
+        Non linearity paramether of the Gross-Pitaevskii equation.
+    eps : float
+        Value of the time separation step.
+    x_spacing : float
+        Distance between two points in the x axis.
+    y_spacing : float
+        Distance between two points in the y axis.
+
+    Returns
+    -------
+    float
+        Computed value of the chemical potential.
+
+    """
     a = np.abs(psi)
     g = gradient_2d(psi, x_spacing, y_spacing)
     g2 = np.abs(g[0, :])**2 + np.abs(g[1, :])**2
@@ -347,7 +464,8 @@ def _crop_array_idxs(array, val_min, val_max):
 
 def winding_number(X, Y, Z, contour, x_spacing, y_spacing):
     """
-    Short summary.
+    This method computes the contour integreation around a positively oriented
+    square of corners A, B, C and D.
 
       A (x_1, y_2) +---<---+ D (x_2, y_2)
                    |       |
