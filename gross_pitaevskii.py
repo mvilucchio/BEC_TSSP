@@ -486,6 +486,13 @@ def winding_number(X, Y, Z, contour, x_spacing, y_spacing):
     contour : list of floats
         Should contain the extrems of the path.
 
+    Raises
+    ------
+    ValueError
+        If the shape of z or contour is not a valid list.
+    TypeError
+        If the type of any of the initial agruments don't match the required.
+
     Returns
     -------
     float
@@ -533,5 +540,104 @@ def winding_number(X, Y, Z, contour, x_spacing, y_spacing):
     return int_value
 
 
-def phase_slip(psi_t):
-    return None
+def calc_phase(psi):
+
+    phases = np.empty(len(ps))
+    #zero_abs = (np.abs(ps)**2 < -10**(-2)).astype(int)
+    phases = np.arctan2(psi.imag, psi.real)
+    return phases
+
+#Here I only calculate the phase for the values of y greatter than zero, which are in fact the relevant ones
+def delta_S(psi_time, M):
+
+    phases = np.zeros((len(psi_time), int(M/2)))
+    dif_phase = np.zeros((len(psi_time), int(M/2)))
+
+    for i, psi in enumerate(psi_time):
+        phases[i] = calc_phase( psi[int(M/2)][int(M/2):] )
+        dif_phase[i] = np.angle( np.exp(1j * np.roll(phases[i],1)) * np.exp(-1j * phases[i]) )
+
+    return phases, dif_phase
+
+
+def _find_indicies(array, value):
+    """
+    Finds the indicies of the array elements that are the closest to `value`. If
+    value is present in `array` then the two indicies are the same.
+
+    Parameters
+    ----------
+    value : scalar
+        Value of which the index is to be found.
+    array : list/numpy.ndarray
+        Sorted array.
+
+    Raises
+    ------
+    ValueError
+        Raised if the indices are not found (i.e. the eindicies are out of bound
+        of the array)
+
+    Returns
+    -------
+    int, int
+        Returns the indicies of the elements of the array most close to value.
+        If the vlaue is present in the array then the function returns the same
+        int twice.
+
+    """
+
+    for i, elem in enumerate(array):
+        if value == elem:
+            return i, i
+        elif elem < value and value < array[i+1]:
+            return i, i+1
+
+    raise ValueError("Indicies not found.")
+
+
+
+def delta_S_2(psi_time, points, X, Y, ret_max=True):
+
+    if not all([isinstance(point, tuple) for _, point in points]):
+        raise TypeError("points should be a list of tuples.")
+    elif not all([len(point) == 2 for _, point in points]):
+        raise TypeError("Each tuple in `points` should have exactly two elements (x_point, y_point).")
+
+    if points[0][0] == points[1][0]:
+        vertical_line = True
+        x = points[0][0]
+        [y1, y2] = [points[0][1], points[1][1]] if points[0][1] <= points[1][1] else [points[1][1], points[0][1]]
+    elif points[0][1] == points[1][1]:
+        vertical_line = False
+        y = points[0][1]
+        [x1, x2] = [points[0][0], points[1][0]] if points[0][0] <= points[1][0] else [points[1][0], points[0][0]]
+    else:
+        raise ValueError("The two tuples in `points` should be [(x, y1), (x,y2)] or [(x1,y),(x2,y)].")
+
+    if vertical_line:
+        x_ind_1, x_ind_2 = _find_indicies(X[:,0], x)
+        y_ind_1, y_ind_2 = _crop_array_idxs(Y[0,:], y1, y2)
+        exact_match = x_ind_2 == x_ind_1
+    else:
+        x_ind_1, x_ind_2 = _crop_array_idxs(X[:,0], x1, x2)
+        y_ind_1, y_ind_2 =_find_indicies(Y[0,:], y)
+        exact_match = y_ind_2 == y_ind_2
+
+    if vertical_line:
+        phases = np.zeros((len(psi_time), y_ind_2 - y_ind_1 + 1))
+        dif_phase = np.zeros((len(psi_time), y_ind_2 - y_ind_1 + 1))
+    else:
+        phases = np.zeros((len(psi_time), x_ind_2 - x_ind_1 + 1))
+        dif_phase = np.zeros((len(psi_time), x_ind_2 - x_ind_1 + 1))
+
+    raise NotImplementedError
+
+    for t, psi in enumerate(psi_time):
+        phases[t,:] = calc_phase( psi[int(M/2)][int(M/2):] )
+        dif_phase[t,:] = np.angle( np.exp(1j * np.roll(phases[i],1)) * np.exp(-1j * phases[i]) )
+
+    if ret_max:
+        return phases, dif_phase, np.max(dif_phase)
+    else:
+        return phases, dif_phase
