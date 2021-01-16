@@ -73,6 +73,51 @@ def _darkizer(fig, axes, title):
                 ytick.set_color(text_color)
 
 
+def printable(fig, axes, title, medium_size=14, big_size=16):
+    """
+    Function to change the font size of the text in the plot.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        The object Figure of which you want to change colour.
+    axes : matplotlib.axes.Axes
+        The axes of the fig.
+    title :
+        The title of the fig.
+    medium_size : int
+        Fontsize of the medium text in the plot. The default is 14.
+    big_size : int
+        Fontsize of the big text in the plot. The default velue is 16.
+
+
+    """
+
+    if isinstance(axes, np.ndarray):
+        if len(axes.shape) == 1:
+            axes = np.expand_dims(axes, 0)
+    else:
+        axes = np.array([[axes]])
+
+    for i in range(axes.shape[0]):
+        for j in range(axes.shape[1]):
+
+            for tick in axes[i, j].xaxis.get_major_ticks():
+                tick.label.set_fontsize(medium_size)
+
+            for tick in axes[i, j].yaxis.get_major_ticks():
+                tick.label.set_fontsize(medium_size)
+
+            axes[i, j].xaxis.label.set_fontsize(medium_size)
+            axes[i, j].yaxis.label.set_fontsize(medium_size)
+            axes[i, j].title.set_fontsize(big_size)
+
+            lgnd = axes[i, j].get_legend()
+            if lgnd != None:
+                lgnd.fontsize = medium_size
+
+
+
 def plane_plotter(x_list, y_list, title='', x_label=r'$x$', y_label=r'$y$', log_x=False, log_y=False, show_plot=True, dark=False):
     """
     Generates a simple plot of the pairs of array x and y in a plane. x_list and y_list
