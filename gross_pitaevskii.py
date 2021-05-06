@@ -109,7 +109,7 @@ def ti_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
     y_max = y_range[1]
     y_min = y_range[0]
 
-    n = time_steps // saving_time
+    n = int(time_steps / saving_time)
     x = np.linspace(x_min, x_max, grid_points, endpoint=False)
     y = np.linspace(y_min, y_max, grid_points, endpoint=False)
     X, Y = np.meshgrid(x, y, sparse=False, indexing="ij")
@@ -153,14 +153,14 @@ def ti_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0,
 
 def _ti_tssp_2d_pbc_multi_step(psi, beta, eps, dt, saving_time, V, Mu2):
 
-    ps = psi * np.exp(-1j*(V + beta*np.abs(psi)**2)*dt/(2*eps))
+    ps = psi * np.exp(-1j*((V + beta*np.abs(psi)**2)*dt)/(2*eps))
     ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * 0.5*eps*dt * Mu2))
 
     for j in range(saving_time-1):
-        ps = ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/eps)
+        ps = ps * np.exp(-1j*((V + beta*np.abs(ps)**2)*dt)/eps)
         ps = fft.ifft2(fft.fft2(ps) * np.exp(-1j * 0.5*eps*dt * Mu2))
 
-    return ps * np.exp(-1j*(V + beta*np.abs(ps)**2)*dt/(2*eps))
+    return ps * np.exp(-1j*((V + beta*np.abs(ps)**2)*dt)/(2*eps))
 
 
 def _ti_tssp_2d_pbc_multi_step_time(psi, beta, eps, dt, saving_time, potential, X, Y, t, Mu2):
@@ -542,7 +542,7 @@ def winding_number(X, Y, Z, contour, x_spacing, y_spacing):
 
 def calc_phase(psi):
 
-    phases = np.empty(len(ps))
+    phases = np.empty(len(psi))
     #zero_abs = (np.abs(ps)**2 < -10**(-2)).astype(int)
     phases = np.arctan2(psi.imag, psi.real)
     return phases
@@ -598,10 +598,37 @@ def _find_indicies(array, value):
 
 
 def delta_S_2(psi_time, points, X, Y, ret_max=True):
+    """
+    Short summary.
 
-    if not all([isinstance(point, tuple) for _, point in points]):
+    Parameters
+    ----------
+    psi_time : numpy.ndarray
+        Description of parameter `psi_time`.
+    points : list of two tuples
+        Description of parameter `points`.
+    X : numpy.ndarray
+        Description of parameter `X`.
+    Y : numpy.ndarray
+        Description of parameter `Y`.
+    ret_max : bool
+        Description of parameter `ret_max`. The default is True.
+
+    Raises
+    ------
+    ExceptionName
+        Why the exception is raised.
+
+    Returns
+    -------
+    numpy.ndarray, numpy.ndarray, float (optional)
+        Description of returned object.
+
+    """
+
+    if not all([isinstance(point, tuple) for point in points]):
         raise TypeError("points should be a list of tuples.")
-    elif not all([len(point) == 2 for _, point in points]):
+    elif not all([len(point) == 2 for point in points]):
         raise TypeError("Each tuple in `points` should have exactly two elements (x_point, y_point).")
 
     if points[0][0] == points[1][0]:
@@ -631,11 +658,14 @@ def delta_S_2(psi_time, points, X, Y, ret_max=True):
         phases = np.zeros((len(psi_time), x_ind_2 - x_ind_1 + 1))
         dif_phase = np.zeros((len(psi_time), x_ind_2 - x_ind_1 + 1))
 
-    raise NotImplementedError
-
+    # the choice is to always take the smallest index if ?_ind_1 and ?_ind_2 don't match
     for t, psi in enumerate(psi_time):
-        phases[t,:] = calc_phase( psi[int(M/2)][int(M/2):] )
-        dif_phase[t,:] = np.angle( np.exp(1j * np.roll(phases[i],1)) * np.exp(-1j * phases[i]) )
+        if vertical_line:
+            phases[t,:] = np.arctan2(psi.imag[x_ind_1, y_ind_1 : y_ind_2 + 1], psi.real[x_ind_1, y_ind_1 : y_ind_2 + 1])
+        else:
+            phases[t,:] = np.arctan2(psi.imag[x_ind_1 : x_ind_2 + 1, y_ind_1], psi.real[x_ind_1 : x_ind_2 + 1, y_ind_1])
+
+        dif_phase[t,:] = np.angle( np.exp(1j * np.roll(phases[t],1)) * np.exp(-1j * phases[t]) )
 
     if ret_max:
         return phases, dif_phase, np.max(dif_phase)
