@@ -1,0 +1,36 @@
+xtick.top: True
+xtick.direction: in
+xtick.major.size: 7
+xtick.major.width: 2
+xtick.minor.size: 5
+xtick.minor.width: 2
+xtick.major.pad: 7
+xtick.labelsize: 16
+
+ytick.right: True
+ytick.direction: in
+ytick.major.size: 7
+ytick.major.width: 2
+ytick.minor.size: 5
+ytick.minor.width: 2
+ytick.major.pad: 7
+ytick.labelsize: 16
+
+axes.titlepad: 10
+axes.titlesize: 20
+axes.labelsize: 16
+axes.linewidth: 2
+
+grid.alpha: 0.3
+mathtext.fontset: stix
+font.family: STIXGeneral
+
+legend.title_fontsize: 16
+legend.fontsize : 16
+legend.frameon : False
+
+font.size: 10
+
+text.usetex: False
+axes.titlelocation: center
+axes.formatter.use_mathtext: True

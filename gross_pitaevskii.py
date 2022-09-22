@@ -1,11 +1,9 @@
 import numpy as np
 from numpy import fft
-import matplotlib.pyplot as plt
 from inspect import signature
 
 EPS = 1e-12
 PRINT_EACH = 100
-
 
 def _progress_bar(percent=0, width=30):
     left = width * percent // 100
@@ -13,23 +11,77 @@ def _progress_bar(percent=0, width=30):
     print('\r[', '#' * left, ' ' * right, ']', f' {percent:.0f}%', sep='', end='', flush=True)
 
 
-def get_mu(M, len):
+def get_mu(M, l):
+    """
+    Helper function to calucate the value of mu used to in the TSSP method.
+
+    Parameters
+    ----------
+    M : int
+        [description]
+    l : int
+        [description]
+
+    Returns
+    -------
+    float
+        Value of mu.
+    """
     arr = np.zeros((M,))
     arr[0:int(M-np.floor(M/2))] = np.array(range(0, int(M-np.floor(M/2))))
     arr[int(M-np.floor(M/2)):M] = np.array(range(0, int(np.floor(M/2)))) - np.floor(M/2)
-    return 2 * np.pi * arr/len
+    return 2 * np.pi * arr/l
 
 
 def ti_tssp_1d_pbc(grid_points, time_steps, saving_time, x_range, psi0, potential, dt, beta, eps, verbose=True):
+    """
+    Evolution for the 1D Gross Pitaevskii equation solve with TSSP.
 
+    Parameters
+    ----------
+    grid_points : [type]
+        [description]
+    time_steps : int
+        Total number of time steps to simulate evolution.
+    saving_time : int
+        
+    x_range : list of floats
+        List containing the minimum and maximum value of the simulation line.
+    psi0 : numpy.ndarray
+        Initial value of the wave functoin
+    potential : function
+        External potential to which the wavefunction si subject to.
+    dt : float
+        [description]
+    beta : [type]
+        [description]
+    eps : [type]
+        [description]
+    verbose : bool, optional
+        [description], by default True.
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ValueError
+        The parameter `saving_time` should divide `time_steps`.
+    ValueError
+        The parameter `x_range` should be a list.
+    ValueError
+        The parameter `x_range` should be list a of two elements.
+    """
     if time_steps % saving_time != 0:
-        raise ValueError('The parameter saving_time should divide time_steps.')
+        raise ValueError('The parameter `saving_time` should divide `time_steps`.')
 
     if not isinstance(x_range, list):
-        raise ValueError('The parameter x_range should be a list.')
+        raise ValueError('The parameter `x_range` should be a list.')
 
     if len(x_range) != 2:
-        raise ValueError('The parameter x_range should be list a of two elements.')
+        raise ValueError('The parameter `x_range` should be list a of two elements.')
 
     n = int(time_steps / saving_time)
 
@@ -176,7 +228,55 @@ def _ti_tssp_2d_pbc_multi_step_time(psi, beta, eps, dt, saving_time, potential, 
 
 
 def td_tssp_2d_pbc(grid_points, time_steps, saving_time, x_range, y_range, psi0, potential, dt, beta, eps, verbose=True):
+    """
+    Generates the time evolution of the Time Dependant (TD) Gross Pitaevski equation solved with Periodic Boundary Conditions in 2D.
 
+    Parameters
+    ----------
+    grid_points : [type]
+        [description]
+    time_steps : [type]
+        [description]
+    saving_time : [type]
+        [description]
+    x_range : [type]
+        [description]
+    y_range : [type]
+        [description]
+    psi0 : [type]
+        [description]
+    potential : [type]
+        [description]
+    dt : [type]
+        [description]
+    beta : [type]
+        [description]
+    eps : [type]
+        [description]
+    verbose : bool, optional
+        [description], by default True
+
+    Returns
+    -------
+    (t, x, y, psi)
+        t : numpy.ndarray
+            Times where the evolution has been recorded in array `psi`
+        X : numpy.ndarray
+            Mesh grid corresponding to the first axis.
+        Y : numpy.ndarray
+            Mesh grid corresponding to the second axis.
+        psi : numpy.ndarray
+            Values of the wavefunction for the recorded timesteps. The first dimension has the same number of elements as `t` and it contains all the time steps. The other two correspond to the two spatial dimensions.
+
+    Raises
+    ------
+    ValueError
+        [description]
+    ValueError
+        [description]
+    ValueError
+        [description]
+    """
     if time_steps % saving_time != 0:
         raise ValueError('The parameter saving_time should divide time_steps.')
 
@@ -248,29 +348,31 @@ def _td_tssp_pbc_2d_step(psi, dt, beta, eps, dx, dy, V, expV, zero_pot, Mu2):
 
 def mean_value_2d(f, psi, x_range, y_range, M):
     """
-    Short summary.
+    Evaluation of the mean value of the function in the given interval.
 
     Parameters
     ----------
-    f : type
-        Description of parameter `f`.
-    psi : type
-        Description of parameter `psi`.
-    x_range : type
-        Description of parameter `x_range`.
-    y_range : type
-        Description of parameter `y_range`.
-    M : type
-        Description of parameter `M`.
+    f : function
+        Function that takes two matrices X and Y and is mutiplied to psi before taking the mean.
+    psi : numpy.ndarray
+        Values of the wavefunction.
+    x_range : list of floats
+        List containing as first/second element the minimum/maximum value of the x axis.
+    y_range : list of floats
+        List containing as first/second element the minimum/maximum value of the y axis.
+    M : int
+        Number of steps in each axis.
 
     Raises
     ------
-    ExceptionName
-        Why the exception is raised.
+    ValueError
+        It is returned if the size of psi is not the same of the as the points in the grid.
+        Returned if the arguments `x_range` and `y_range` are not lists.
+        Returned if the legnths of `x_range` and `y_range` are not of 2.
 
     Returns
     -------
-    type
+    numpy.ndarray
         Description of returned object.
 
     """
@@ -300,21 +402,21 @@ def mean_value_2d(f, psi, x_range, y_range, M):
 
 def gradient_2d(psi, x_spacing, y_spacing):
     """
-    Short summary.
+    Evaluates the discrete gradient of the function psi on the grid given by x_spacing and y_spacing.
 
     Parameters
     ----------
-    psi : type
-        Description of parameter `psi`.
-    x_spacing : type
-        Description of parameter `x_spacing`.
-    y_spacing : type
-        Description of parameter `y_spacing`.
+    psi : numpy.ndarray
+        Function to calculate the gradient from.
+    x_spacing : float
+        Discretization spacing on the x axis.
+    y_spacing : float
+        Discretization spacing on the x axis.
 
     Returns
     -------
-    type
-        Description of returned object.
+    numpy.ndarray
+        Array containing the gradient of psi.
 
     """
     g = np.empty((2, psi.shape[0], psi.shape[1]), dtype=psi.dtype)
@@ -325,16 +427,16 @@ def gradient_2d(psi, x_spacing, y_spacing):
 
 def veloc_2d(psi, x_spacing, y_spacing):
     """
-    Short summary.
+    Calculates the velocity field of a given discretized wavefunction `psi` and discretization on the two axis `x_spacing` and `y_spacing`.
 
     Parameters
     ----------
-    psi : type
-        Description of parameter `psi`.
-    x_spacing : type
-        Description of parameter `x_spacing`.
-    y_spacing : type
-        Description of parameter `y_spacing`.
+    psi : numpy.ndarray
+        Values of the wavefunction for every grid step.
+    x_spacing : float
+        Length of the spacing along the first axis.
+    y_spacing : float
+        Legnth of the spacing along the second axis.
 
     Returns
     -------
@@ -605,19 +707,21 @@ def delta_S_2(psi_time, points, X, Y, ret_max=True):
     ----------
     psi_time : numpy.ndarray
         Description of parameter `psi_time`.
-    points : list of two tuples
-        Description of parameter `points`.
+    points : list of 2-tuples
+        List 
     X : numpy.ndarray
-        Description of parameter `X`.
+        Mesh grid associated to the first axis.
     Y : numpy.ndarray
-        Description of parameter `Y`.
+        Mesh grid associated to the second axis.
     ret_max : bool
         Description of parameter `ret_max`. The default is True.
 
     Raises
     ------
-    ExceptionName
-        Why the exception is raised.
+    TypeError
+        Input `points` should be a list of tuples.
+    TypeError
+        Each tuple in `points` should match with (x_point, y_point) with x_point and y_point floats.
 
     Returns
     -------

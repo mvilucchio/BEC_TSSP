@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
-from mpl_toolkits import mplot3d
 import matplotlib.animation as animation
 
 # sizes
@@ -89,8 +88,6 @@ def printable(fig, axes, title, medium_size=14, big_size=16):
         Fontsize of the medium text in the plot. The default is 14.
     big_size : int
         Fontsize of the big text in the plot. The default velue is 16.
-
-
     """
 
     if isinstance(axes, np.ndarray):
@@ -218,7 +215,7 @@ def pcolor_plotter(X, Y, Z, title='', x_label=r'$x$', y_label=r'$y$', show_plot=
         Title of the plot. The default is ''.
     x_label : str, optional
         Name of the horizontal axis. The default is r'$x$'.
-    y_label : TYPE, optional
+    y_label : str, optional
         Name of the vertical axis. The default is r'$y$'.
     show_plot: bool, optional
         Flag for printing the figure with plt.show(). The default value is True.
@@ -258,26 +255,26 @@ def contour_plotter(X, Y, Z, levels=25, title='', x_label=r'$x$', y_label=r'$y$'
     Parameters
     ----------
     X : numpy.ndarray
-        Description of parameter `X`.
+        x axis mesh grid for the plot.
     Y : numpy.ndarray
-        Description of parameter `Y`.
+        y axis mesh grid for the plot.
     Z : numpy.ndarray
-        Description of parameter `Z`.
+        Values of the plot.
     levels : int or list of int, optional
         `levels` param in function matplotlib.pyplot.contour. The default is 25.
     title : str, optional
-        Description of parameter `title`. The default is ''.
+        Title of the plot. The default is ''.
     x_label : str, optional
-        Description of parameter `x_label`. The default is r'$x$'.
+        Label of the horizontal axis. The default is r'$x$'.
     y_label : str, optional
-        Description of parameter `y_label`. The default is r'$y$'.
+        Label of the vertical axis. The default is r'$y$'.
     values : bool, optional
         Flag for having the plot contain the value of the contour lines. The
         default is False.
     show_plot : bool, optional
-        Description of parameter `show_plot`. The default is True.
+        if True it will call plt.show() before exiting the function. The default is True.
     dark : bool, optional
-        Description of parameter `dark`. The default is False.
+        Apply dark theme to the image. The default is False.
 
     Returns
     -------
